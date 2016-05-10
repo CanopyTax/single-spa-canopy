@@ -1,0 +1,28 @@
+{
+  "name": "single-spa-canopy",
+  "version": "1.0.0",
+  "description": "Some helpers for single-spa child apps at canopy",
+  "main": "lib/single-spa-canopy.js",
+  "scripts": {
+    "build": "babel src --out-dir lib",
+    "prepublish": "npm run build"
+  },
+  "publishConfig": {
+    "registry": "http://npm.canopytax.com"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CanopyTax/single-spa-canopy.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/CanopyTax/single-spa-canopy/issues"
+  },
+  "homepage": "https://github.com/CanopyTax/single-spa-canopy#readme",
+  "devDependencies": {
+    "babel-cli": "^6.8.0",
+    "babel-preset-es2015": "^6.6.0",
+    "babel-preset-stage-0": "^6.5.0"
+  }
+}
