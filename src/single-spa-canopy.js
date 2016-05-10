@@ -3,6 +3,7 @@ let opts;
 const defaultOpts = {
 	mainContentTransition: true,
 	domElementGetter: null,
+	childAppName: null,
 };
 
 const domParser = new DOMParser();
@@ -21,6 +22,10 @@ export default function singleSpaCanopy(userOpts) {
 		throw new Error(`In order to show a transition between apps, single-spa-canopy requires opts.domElementGetter function`);
 	}
 
+	if (typeof opts.childAppName !== 'string') {
+		throw new Error(`single-spa-canopy requires opts.childAppName string`);
+	}
+
 	return {
 		bootstrap,
 		mount,
@@ -30,7 +35,24 @@ export default function singleSpaCanopy(userOpts) {
 
 function bootstrap() {
 	return new Promise((resolve, reject) => {
-		resolve();
+		if (window.Raven) {
+			SystemJS
+			.locate({
+				name: `${opts.childAppName}!sofe`,
+				metadata: {},
+				address: '',
+			})
+			.then(url => {
+				window.Raven.setTagsContext({
+					[opts.childAppName]: url,
+				});
+
+				resolve();
+			})
+			.catch(reject)
+		} else {
+			resolve();
+		}
 	});
 }
 
