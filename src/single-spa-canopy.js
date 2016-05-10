@@ -42,11 +42,11 @@ function mount() {
 			el = getDomEl();
 		}
 
-		const loaderEls = el.querySelectorAll('.cps-loader');
-
-		while (loaderEls.length > 0) {
-			el.removeChild(loaderEls[0]);
-		}
+		const loaderEls = Array.prototype.forEach.call(el.querySelectorAll('.cps-loader'), function(loaderEl) {
+			if (loaderEl.parentNode) {
+				loaderEl.parentNode.removeChild(loaderEl);
+			}
+		});
 
 		resolve();
 	});
