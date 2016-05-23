@@ -27,6 +27,6 @@ export const unmount = [
 
 ## Options
 
-- mainContentTransition: (optional) A boolean value that defaults to true. If set to true, the three dots animation will show up when transitioning between apps
-- domElementGetter: (optional) A function that returns the dom element in which the child app will be mounted. This is required if `mainContentTransition` is true.
-- childAppName: (required) A string, that includes the `!sofe` at the end. This is the name by which the child app can be SystemJS.imported.
+- `mainContentTransition`: (optional) A boolean value that defaults to true. If set to true, the three dots animation will show up when transitioning between apps
+- `domElementGetter`: (optional) A function that returns the dom element in which the child app will be mounted. This is required if `mainContentTransition` is true.
+- `childAppName`: (required) A string, that includes the `!sofe` at the end. This is the name by which the child app can be SystemJS.imported.
