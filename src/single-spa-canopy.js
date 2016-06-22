@@ -89,17 +89,15 @@ function bootstrap() {
 
 function mount() {
 	return new Promise((resolve, reject) => {
-		let el;
-
 		if (opts.domElementGetter) {
-			el = getDomEl();
-		}
+			const el = getDomEl();
 
-		const loaderEls = Array.prototype.forEach.call(el.querySelectorAll('.cps-loader'), function(loaderEl) {
-			if (loaderEl.parentNode) {
-				loaderEl.parentNode.removeChild(loaderEl);
-			}
-		});
+			const loaderEls = Array.prototype.forEach.call(el.querySelectorAll('.cps-loader'), function(loaderEl) {
+				if (loaderEl.parentNode) {
+					loaderEl.parentNode.removeChild(loaderEl);
+				}
+			});
+		}
 
 		resolve();
 	});
