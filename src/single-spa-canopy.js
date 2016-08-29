@@ -5,6 +5,7 @@ const defaultOpts = {
 	domElementGetter: null,
 	childAppName: null,
 	React: null,
+	featureToggles: [],
 };
 
 const domParser = new DOMParser();
@@ -27,6 +28,10 @@ export default function singleSpaCanopy(userOpts) {
 		throw new Error(`single-spa-canopy requires opts.childAppName string`);
 	}
 
+	if (userOpts.featureToggles && !Array.isArray(userOpts.featureToggles)) {
+		throw new Error(`single-spa-canopy opts.featureToggles must be an array of strings`);
+	}
+
 	return {
 		bootstrap,
 		mount,
@@ -36,24 +41,33 @@ export default function singleSpaCanopy(userOpts) {
 
 function bootstrap() {
 	return new Promise((resolve, reject) => {
+		const blockingPromises = [];
 		if (window.Raven) {
-			SystemJS
-			.locate({
-				name: `${opts.childAppName}!sofe`,
-				metadata: {},
-				address: '',
-			})
-			.then(url => {
-				window.Raven.setTagsContext({
-					[opts.childAppName]: url,
-				});
-
-				resolve();
-			})
-			.catch(reject)
-		} else {
-			resolve();
+			blockingPromises.push(SystemJS
+				.locate({
+					name: `${opts.childAppName}!sofe`,
+					metadata: {},
+					address: '',
+				})
+				.then(url => {
+					window.Raven.setTagsContext({
+						[opts.childAppName]: url,
+					});
+				})
+			);
 		}
+
+		if (opts.featureToggles.length > 0) {
+			blockingPromises.push(
+				System
+				.import('feature-toggles!sofe')
+				.then(featureToggles => {
+					return featureToggles.fetchFeatureToggles(...opts.featureToggles)
+				})
+			);
+		}
+
+		Promise.all(blockingPromises).then(resolve).catch(reject);
 
 		/* Non-blocking after everything else -- check that if we're bundling our own version of react, instead
 		 * of using common-dependencies-bundle's version of React, that we are using exactly the same version
