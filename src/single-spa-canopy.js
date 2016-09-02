@@ -126,31 +126,40 @@ function unmount() {
 		}
 
 		if (opts.mainContentTransition) {
-			const secondaryNavEl = document.querySelector('.cps-secondarynav');
-			const topNavSecondaryEl = document.querySelector('.cps-topnav-secondary');
-			const topNavEl = document.querySelector('.cps-topnav');
-			const bannerEl = document.querySelector('.cps-banner-global');
+			putLoaderIntoEl(el);
+		}
 
-			const leftOffset = secondaryNavEl ? secondaryNavEl.clientWidth / 2 : 0;
-			const topOffset = (clientHeight(bannerEl) + clientHeight(topNavEl) + clientHeight(topNavSecondaryEl)) / 2;
-
-			const parsedDoc = domParser.parseFromString(`
-				<div class="cps-loader +page" style="position: fixed; left: calc(50% + ${leftOffset}px); top: calc(50% + ${topOffset}px); transform: translate(-50%, -50%)">
-					<span></span>
-					<span></span>
-					<span></span>
-				</div>
-				`, 'text/html');
-
-			el.appendChild(parsedDoc.documentElement.querySelector('body').children[0]);
-
-			function clientHeight(el) {
-				return el ? el.clientHeight : 0;
-			}
+		const cpMainContent = document.getElementById('cp-main-content');
+		if (cpMainContent.childNodes.length === 0) {
+			putLoaderIntoEl(cpMainContent);
 		}
 
 		resolve();
 	});
+}
+
+function putLoaderIntoEl(el) {
+	const secondaryNavEl = document.querySelector('.cps-secondarynav');
+	const topNavSecondaryEl = document.querySelector('.cps-topnav-secondary');
+	const topNavEl = document.querySelector('.cps-topnav');
+	const bannerEl = document.querySelector('.cps-banner-global');
+
+	const leftOffset = secondaryNavEl ? secondaryNavEl.clientWidth / 2 : 0;
+	const topOffset = (clientHeight(bannerEl) + clientHeight(topNavEl) + clientHeight(topNavSecondaryEl)) / 2;
+
+	const parsedDoc = domParser.parseFromString(`
+		<div class="cps-loader +page" style="position: fixed; left: calc(50% + ${leftOffset}px); top: calc(50% + ${topOffset}px); transform: translate(-50%, -50%)">
+			<span></span>
+			<span></span>
+			<span></span>
+		</div>
+		`, 'text/html');
+
+	el.appendChild(parsedDoc.documentElement.querySelector('body').children[0]);
+
+	function clientHeight(el) {
+		return el ? el.clientHeight : 0;
+	}
 }
 
 function getDomEl() {
