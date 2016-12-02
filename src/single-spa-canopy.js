@@ -4,7 +4,6 @@ const defaultOpts = {
 	mainContentTransition: true,
 	domElementGetter: null,
 	childAppName: null,
-	React: null,
 	featureToggles: [],
 };
 
@@ -68,36 +67,6 @@ function bootstrap() {
 		}
 
 		Promise.all(blockingPromises).then(resolve).catch(reject);
-
-		/* Non-blocking after everything else -- check that if we're bundling our own version of react, instead
-		 * of using common-dependencies-bundle's version of React, that we are using exactly the same version
-		 * of react as what will be used when this is deployed to production.
-		 */
-		if (opts.React) {
-			System
-			.import('react')
-			.then(spalpatineReact => {
-				if (spalpatineReact.version !== opts.React.version) {
-					System
-					.import('sofe')
-					.then(sofe => {
-						if (sofe.isOverride(opts.childAppName)) {
-							warn(localStorage.getItem(`sofe:${opts.childAppName}`));
-						} else {
-							sofe
-							.getAllManifests()
-							.then(manifests => {
-								warn(manifests.flat[opts.childAppName]);
-							});
-						}
-					})
-
-					function warn(url) {
-						console.warn(`For application '${opts.childAppName}' hosted at url '${url}', the version of React (${opts.React.version}) is different than the spalpatine React version (${spalpatineReact.version}).`);
-					}
-				}
-			})
-		}
 	});
 }
 
