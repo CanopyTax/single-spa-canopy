@@ -36,6 +36,10 @@ export const mount = [
 export const unmount = [
   canopyLifecycles.unmount,
 ];
+
+export const unload = [
+  canopyLifecycles.unload,
+];
 ```
 
 ## Options
