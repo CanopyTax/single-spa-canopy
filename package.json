@@ -27,6 +27,6 @@
   },
   "dependencies": {},
   "peerDependencies": {
-    "single-spa": "*"
+    "single-spa": ">=3.3.0"
   }
 }

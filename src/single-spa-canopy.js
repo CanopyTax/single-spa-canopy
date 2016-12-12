@@ -61,7 +61,7 @@ function bootstrap(opts) {
 				const shouldHotload = overriddenToLocal && opts.hotload.dev.enabled;
 
 				if (shouldHotload) {
-					initializeHotReloading(opts, url);
+					initializeHotReloading(opts, url, opts.hotload.dev.waitForUnmount);
 				}
 
 				if (window.Raven) {
