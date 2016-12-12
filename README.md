@@ -12,7 +12,17 @@ const canopyLifecycles = singleSpaCanopy({
   domElementGetter: () => document.getElementById('main-content'),
   childAppName: 'workflow-ui!sofe',
   React,
-  featureToggles: ['toggle1', 'toggle2']
+  featureToggles: ['toggle1', 'toggle2'],
+  hotload: {
+    dev: {
+      enabled: true,
+      waitForUnmount: false,
+    },
+    deploy: {
+      enabled: false,
+      waitForUnmount: false,
+    },
+  },
 });
 
 export const bootstrap = [
@@ -35,3 +45,4 @@ export const unmount = [
 - `domElementGetter`: (optional) A function that returns the dom element in which the child app will be mounted. This is required if `mainContentTransition` is true.
 - `React`: (optional) The react object, which will be used to determine if the child application is using the same version of React that is used by spalpatine.
 - `featureToggles`: (optional) An array of strings, which are the names of feature toggles to fetch before this app is mounted.
+- `hotload`: (optional) An object that configures whether you would like to hot reload this single-spa application.

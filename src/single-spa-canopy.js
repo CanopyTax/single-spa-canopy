@@ -7,7 +7,7 @@ const defaultOpts = {
 	featureToggles: [],
 	hotload: {
 		dev: {
-			enabled: true,
+			enabled: false, // You must opt in to hotload
 			waitForUnmount: false,
 		},
 		deployed: {
