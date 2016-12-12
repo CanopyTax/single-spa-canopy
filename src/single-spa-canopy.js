@@ -1,10 +1,20 @@
-let opts;
+import {initializeHotReloading} from './hot-reload.js';
 
 const defaultOpts = {
 	mainContentTransition: true,
 	domElementGetter: null,
 	childAppName: null,
 	featureToggles: [],
+	hotload: {
+		dev: {
+			enabled: false, // You must opt in to hotload
+			waitForUnmount: false,
+		},
+		deployed: {
+			enabled: false,
+			waitForUnmount: true,
+		},
+	},
 };
 
 const domParser = new DOMParser();
@@ -14,10 +24,7 @@ export default function singleSpaCanopy(userOpts) {
 		throw new Error(`single-spa-canopy requires an opts object`);
 	}
 
-	opts = {
-		...defaultOpts,
-		...userOpts,
-	};
+	const opts = Object.assign({}, defaultOpts, userOpts);
 
 	if (opts.mainContentTransition && !opts.domElementGetter) {
 		throw new Error(`In order to show a transition between apps, single-spa-canopy requires opts.domElementGetter function`);
@@ -32,29 +39,38 @@ export default function singleSpaCanopy(userOpts) {
 	}
 
 	return {
-		bootstrap,
-		mount,
-		unmount,
+		bootstrap: bootstrap.bind(null, opts),
+		mount: mount.bind(null, opts),
+		unmount: unmount.bind(null, opts),
+		unload: unload.bind(null, opts),
 	};
 }
 
-function bootstrap() {
+function bootstrap(opts) {
 	return new Promise((resolve, reject) => {
 		const blockingPromises = [];
-		if (window.Raven) {
-			blockingPromises.push(SystemJS
-				.locate({
-					name: `${opts.childAppName}!sofe`,
-					metadata: {},
-					address: '',
-				})
-				.then(url => {
+		const moduleName = `${opts.childAppName}!sofe`;
+		blockingPromises.push(SystemJS
+			.locate({
+				name: moduleName,
+				metadata: {},
+				address: '',
+			})
+			.then(url => {
+				const overriddenToLocal = url.indexOf('https://localhost') === 0 || url.indexOf('https://ielocal') === 0;
+				const shouldHotload = overriddenToLocal && opts.hotload.dev.enabled;
+
+				if (shouldHotload) {
+					initializeHotReloading(opts, url, opts.hotload.dev.waitForUnmount);
+				}
+
+				if (window.Raven) {
 					window.Raven.setTagsContext({
 						[opts.childAppName]: url,
 					});
-				})
-			);
-		}
+				}
+			})
+		);
 
 		if (opts.featureToggles.length > 0) {
 			blockingPromises.push(
@@ -70,10 +86,10 @@ function bootstrap() {
 	});
 }
 
-function mount() {
+function mount(opts) {
 	return new Promise((resolve, reject) => {
 		if (opts.domElementGetter) {
-			const el = getDomEl();
+			const el = getDomEl(opts);
 
 			const loaderEls = Array.prototype.forEach.call(el.querySelectorAll('.cps-loader'), function(loaderEl) {
 				if (loaderEl.parentNode) {
@@ -86,12 +102,12 @@ function mount() {
 	});
 }
 
-function unmount() {
+function unmount(opts) {
 	return new Promise((resolve, reject) => {
 		let el;
 
 		if (opts.domElementGetter) {
-			el = getDomEl();
+			el = getDomEl(opts);
 		}
 
 		if (opts.mainContentTransition) {
@@ -105,6 +121,14 @@ function unmount() {
 
 		resolve();
 	});
+}
+
+function unload(opts) {
+	if (SystemJS.reload) {
+		return SystemJS.reload(opts.childAppName);
+	} else {
+		return Promise.reject(`Cannot hotload app '${opts.childAppName}' because SystemJS.trace is false or SystemJS.reload is undefined. Try running localStorage.setItem('common-deps', 'dev') and refreshing the page.`);
+	}
 }
 
 function putLoaderIntoEl(el) {
@@ -131,7 +155,7 @@ function putLoaderIntoEl(el) {
 	}
 }
 
-function getDomEl() {
+function getDomEl(opts) {
 	const el = opts.domElementGetter();
 	if (!el) {
 		throw new Error(`single-spa-canopy: domElementGetter did not return a valid DOM element`);
