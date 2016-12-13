@@ -1,14 +1,15 @@
-import {unloadChildApplication} from 'single-spa';
-
 export function initializeHotReloading(opts, url, waitForUnmount) {
 	const baseUrl = url.slice(0, url.lastIndexOf('/'));
 	const evtSource = new EventSource(`${baseUrl}/hot-reload`);
 
-	SystemJS
-	.import('systemjs-hmr')
-	.then(() => {
+	Promise
+	.all([SystemJS.import('systemjs-hmr'), SystemJS.import('single-spa')])
+	.then(values => {
+		const singleSpa = values[1];
+
 		evtSource.onmessage = function(e) {
-			unloadChildApplication(opts.childAppName, {waitForUnmount})
+			singleSpa
+			.unloadChildApplication(opts.childAppName, {waitForUnmount})
 			.then(() => {
 				// When we unload the application, a new evtSource will be subscribed to.
 				evtSource.close();
@@ -23,5 +24,9 @@ export function initializeHotReloading(opts, url, waitForUnmount) {
 			console.error(`Error hot loading app '${opts.childAppName}'.`);
 			console.error(e);
 		}
-	});
+	})
+	.catch(err => {
+		console.error(`Failed to set up hot reloading for app '${opts.childAppName}'`);
+		console.error(err);
+	})
 }
