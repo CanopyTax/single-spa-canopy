@@ -7,9 +7,6 @@
     "build": "babel src --out-dir lib",
     "prepublish": "npm run build"
   },
-  "publishConfig": {
-    "registry": "http://npm.canopytax.com"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/CanopyTax/single-spa-canopy.git"
