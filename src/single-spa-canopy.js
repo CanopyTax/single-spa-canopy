@@ -1,4 +1,5 @@
 import {initializeHotReloading} from './hot-reload.js';
+import deepMerge from 'deepmerge';
 
 const defaultOpts = {
 	mainContentTransition: true,
@@ -6,6 +7,7 @@ const defaultOpts = {
 	childAppName: null,
 	featureToggles: [],
 	hotload: {
+		warnCss: true,
 		dev: {
 			enabled: false, // You must opt in to hotload
 			waitForUnmount: false,
@@ -24,7 +26,7 @@ export default function singleSpaCanopy(userOpts) {
 		throw new Error(`single-spa-canopy requires an opts object`);
 	}
 
-	const opts = Object.assign({}, defaultOpts, userOpts);
+	const opts = deepMerge(defaultOpts, userOpts);
 
 	if (opts.mainContentTransition && !opts.domElementGetter) {
 		throw new Error(`In order to show a transition between apps, single-spa-canopy requires opts.domElementGetter function`);
@@ -123,9 +125,19 @@ function unmount(opts) {
 	});
 }
 
-function unload(opts) {
+function unload(opts, props) {
 	if (SystemJS.reload) {
-		return SystemJS.reload(opts.childAppName);
+		return Promise
+			.resolve()
+			.then(() => {
+				const optsChildAppSelector = `#${opts.childAppName}-styles`;
+				const propsChildAppSelector = `#${props.childAppName}-styles`;
+				const removedCss = attemptDeleteDomNode(opts.hotload.styleTagSelector) || attemptDeleteDomNode(optsChildAppSelector) || attemptDeleteDomNode(propsChildAppSelector);
+				if (!removedCss && opts.hotload.warnCss) {
+					console.error(`Hot-reload warning: Cannot unload css for app '${props.childAppName}'. Please provide opts.hotload.styleTagSelector, or put an id attribute on the <style> with '${optsChildAppSelector}' or '${propsChildAppSelector}'. This warning will only occur once per page load.`);
+				}
+			})
+			.then(() => SystemJS.reload(opts.childAppName));
 	} else {
 		return Promise.reject(`Cannot hotload app '${opts.childAppName}' because SystemJS.trace is false or SystemJS.reload is undefined. Try running localStorage.setItem('common-deps', 'dev') and refreshing the page.`);
 	}
@@ -152,6 +164,16 @@ function putLoaderIntoEl(el) {
 
 	function clientHeight(el) {
 		return el ? el.clientHeight : 0;
+	}
+}
+
+function attemptDeleteDomNode(selector) {
+	const element = document.querySelector(selector);
+	if (!element) {
+		return false;
+	} else {
+		element.parentNode.removeChild(element);
+		return true;
 	}
 }
 
