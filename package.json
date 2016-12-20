@@ -1,6 +1,6 @@
 {
   "name": "single-spa-canopy",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Some helpers for single-spa child apps at canopy",
   "main": "lib/single-spa-canopy.js",
   "scripts": {
