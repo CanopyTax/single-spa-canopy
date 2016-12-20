@@ -14,6 +14,7 @@ const canopyLifecycles = singleSpaCanopy({
   React,
   featureToggles: ['toggle1', 'toggle2'],
   hotload: {
+    warnCss: true, // Show a warning if no css is being hotloaded.
     dev: {
       enabled: true,
       waitForUnmount: false,
