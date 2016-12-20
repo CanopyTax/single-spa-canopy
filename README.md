@@ -1,5 +1,5 @@
 # single-spa-canopy
-Some helpers for single-spa child apps at canopy
+Some helpers for [single-spa](https://github.com/CanopyTax/single-spa) child apps at canopy
 
 ## Usage
 
