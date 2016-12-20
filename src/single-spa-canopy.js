@@ -130,7 +130,7 @@ function unload(opts, props) {
 		return Promise
 			.resolve()
 			.then(() => {
-				const optsChildAppSelector = `#${opts.childAppName}-styles`;
+				const optsChildAppSelector = opts.hotload.styleTagSelector; // This can be a className `.name` or an `#id` or any selector
 				const propsChildAppSelector = `#${props.childAppName}-styles`;
 				const removedCss = attemptDeleteDomNode(opts.hotload.styleTagSelector) || attemptDeleteDomNode(optsChildAppSelector) || attemptDeleteDomNode(propsChildAppSelector);
 				if (!removedCss && opts.hotload.warnCss) {
