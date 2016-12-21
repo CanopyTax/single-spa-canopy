@@ -5,6 +5,11 @@ export function initializeHotReloading(opts, url, waitForUnmount) {
 	Promise
 	.all([SystemJS.import('systemjs-hmr'), SystemJS.import('single-spa')])
 	.then(values => {
+		const hmr = values[0];
+		if (hmr && hmr.setDebugLogging) {
+			hmr.setDebugLogging(false);
+		}
+
 		const singleSpa = values[1];
 
 		evtSource.onmessage = function(e) {
