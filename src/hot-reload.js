@@ -1,4 +1,8 @@
 export function initializeHotReloading(opts, url, waitForUnmount) {
+	if (typeof EventSource === 'undefined') {
+		console.warn("Cannot enable hot reloading because this browser does not support Server Sent Events with EventSource");
+		return;
+	}
 	const baseUrl = url.slice(0, url.lastIndexOf('/'));
 	const evtSource = new EventSource(`${baseUrl}/hot-reload`);
 
