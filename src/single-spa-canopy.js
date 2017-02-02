@@ -76,7 +76,7 @@ function bootstrap(opts) {
 
 		if (opts.featureToggles.length > 0) {
 			blockingPromises.push(
-				System
+				SystemJS
 				.import('feature-toggles!sofe')
 				.then(featureToggles => {
 					return featureToggles.fetchFeatureToggles(...opts.featureToggles)
