@@ -132,9 +132,20 @@ function unload(opts, props) {
 			.then(() => {
 				const optsChildAppSelector = opts.hotload.styleTagSelector; // This can be a className `.name` or an `#id` or any selector
 				const propsChildAppSelector = `#${props.childAppName}-styles`;
-				const removedCss = attemptDeleteDomNode(opts.hotload.styleTagSelector) || attemptDeleteDomNode(optsChildAppSelector) || attemptDeleteDomNode(propsChildAppSelector);
-				if (!removedCss && opts.hotload.warnCss) {
-					console.error(`Hot-reload warning: Cannot unload css for app '${props.childAppName}'. Please provide opts.hotload.styleTagSelector, or put an id attribute on the <style> with '${optsChildAppSelector}' or '${propsChildAppSelector}'. This warning will only occur once per page load.`);
+				let didRemoveCss = attemptDeleteDomNode(opts.hotload.styleTagSelector) || attemptDeleteDomNode(optsChildAppSelector) || attemptDeleteDomNode(propsChildAppSelector);
+
+				if (typeof __webpack_require__ !== 'undefined') {
+					const installedModules = __webpack_require__.c;
+					for (let moduleId in installedModules) {
+						const module = installedModules[moduleId]
+						if (module.hot) {
+							module.hot._disposeHandlers.forEach(handler => handler());
+						}
+					}
+					didRemoveCss = true;
+				}
+				if (!didRemoveCss && opts.hotload.warnCss) {
+					console.error(`Hot-reload warning: Cannot unload css for app '${props.childAppName}'. Please provide opts.hotload.styleTagSelector, or put an id attribute on the <style> with '${optsChildAppSelector}' or '${propsChildAppSelector}'. If using webpack, try doing webpack --hot`);
 				}
 			})
 			.then(() => SystemJS.reload(opts.childAppName));
