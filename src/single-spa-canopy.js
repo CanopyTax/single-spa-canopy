@@ -1,5 +1,6 @@
 import {initializeHotReloading} from './hot-reload.js';
 import deepMerge from 'deepmerge';
+import { getServiceUrl, InvalidServiceName } from 'sofe';
 
 const defaultOpts = {
 	mainContentTransition: true,
@@ -51,28 +52,34 @@ export default function singleSpaCanopy(userOpts) {
 function bootstrap(opts) {
 	return new Promise((resolve, reject) => {
 		const blockingPromises = [];
-		const moduleName = `${opts.childAppName}!sofe`;
-		blockingPromises.push(SystemJS
-			.locate({
-				name: moduleName,
-				metadata: {},
-				address: '',
-			})
-			.then(url => {
-				const overriddenToLocal = url.indexOf('https://localhost') === 0 || url.indexOf('https://ielocal') === 0;
-				const shouldHotload = overriddenToLocal && opts.hotload.dev.enabled;
+		let url = '', invalidName = false;
 
-				if (shouldHotload) {
-					initializeHotReloading(opts, url, opts.hotload.dev.waitForUnmount);
-				}
+		try {
+			url = getServiceUrl(opts.childAppName);
+		} catch (e) {
+			if (e instanceof InvalidServiceName) {
+				console.warn(
+					`The single-spa child app name is not the same as the sofe service!
+					This means that hotloading will not work!`
+				);
+				invalidName = true;
+			} else {
+				throw e;
+			}
+		}
 
-				if (window.Raven) {
-					window.Raven.setTagsContext({
-						[opts.childAppName]: url,
-					});
-				}
-			})
-		);
+		const overriddenToLocal = url.indexOf('https://localhost') === 0 || url.indexOf('https://ielocal') === 0;
+		const shouldHotload = !invalidName && overriddenToLocal && opts.hotload.dev.enabled;
+
+		if (shouldHotload) {
+			initializeHotReloading(opts, url, opts.hotload.dev.waitForUnmount);
+		}
+
+		if (window.Raven) {
+			window.Raven.setTagsContext({
+				[opts.childAppName]: url,
+			});
+		}
 
 		if (opts.featureToggles.length > 0) {
 			blockingPromises.push(
