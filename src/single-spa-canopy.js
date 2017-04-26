@@ -50,42 +50,53 @@ export default function singleSpaCanopy(userOpts) {
 
 function bootstrap(opts) {
 	return new Promise((resolve, reject) => {
-		const blockingPromises = [];
-		const moduleName = `${opts.childAppName}!sofe`;
-		blockingPromises.push(SystemJS
-			.locate({
-				name: moduleName,
-				metadata: {},
-				address: '',
-			})
-			.then(url => {
-				const overriddenToLocal = url.indexOf('https://localhost') === 0 || url.indexOf('https://ielocal') === 0;
-				const shouldHotload = overriddenToLocal && opts.hotload.dev.enabled;
+			const blockingPromises = [];
+			const moduleName = `${opts.childAppName}!sofe`;
+			blockingPromises.push(SystemJS
+				.import('sofe')
+				.then(({getServiceUrl, InvalidServiceName}) => {
+					let url = '', invalidName = false;
 
-				if (shouldHotload) {
-					initializeHotReloading(opts, url, opts.hotload.dev.waitForUnmount);
-				}
+					try {
+						url = getServiceUrl(opts.childAppName);
+					} catch (e) {
+						if (e instanceof InvalidServiceName) {
+							console.warn(
+								`The single-spa child app name is not the same as the sofe service!
+								This means that hotloading will not work!`
+							);
+							invalidName = true;
+						} else {
+							throw e;
+						}
+					}
+					const overriddenToLocal = url.indexOf('https://localhost') === 0 || url.indexOf('https://ielocal') === 0;
+					const shouldHotload = !invalidName && overriddenToLocal && opts.hotload.dev.enabled;
 
-				if (window.Raven) {
-					window.Raven.setTagsContext({
-						[opts.childAppName]: url,
-					});
-				}
-			})
-		);
+					if (shouldHotload) {
+						initializeHotReloading(opts, url, opts.hotload.dev.waitForUnmount);
+					}
 
-		if (opts.featureToggles.length > 0) {
-			blockingPromises.push(
-				SystemJS
-				.import('feature-toggles!sofe')
-				.then(featureToggles => {
-					return featureToggles.fetchFeatureToggles(...opts.featureToggles)
+					if (window.Raven) {
+						window.Raven.setTagsContext({
+							[opts.childAppName]: url,
+						});
+					}
 				})
 			);
-		}
 
-		Promise.all(blockingPromises).then(resolve).catch(reject);
-	});
+			if (opts.featureToggles.length > 0) {
+				blockingPromises.push(
+					SystemJS
+					.import('feature-toggles!sofe')
+					.then(featureToggles => {
+						return featureToggles.fetchFeatureToggles(...opts.featureToggles)
+					})
+				);
+			}
+
+			Promise.all(blockingPromises).then(resolve).catch(reject);
+		});
 }
 
 function mount(opts) {
