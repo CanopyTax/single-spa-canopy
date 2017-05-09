@@ -1,5 +1,10 @@
 import {initializeHotReloading} from './hot-reload.js';
 import deepMerge from 'deepmerge';
+import { shouldShowOverlay, getColorFromString, createOverlayWithText, addOverlayEventListener } from './overlays.helpers.js'
+
+if (!window._overlayListenerDefined) {
+	addOverlayEventListener()
+}
 
 const defaultOpts = {
 	mainContentTransition: true,
@@ -17,6 +22,7 @@ const defaultOpts = {
 			waitForUnmount: true,
 		},
 	},
+	overlay: {}
 };
 
 const domParser = new DOMParser();
@@ -101,8 +107,21 @@ function bootstrap(opts) {
 
 function mount(opts) {
 	return new Promise((resolve, reject) => {
+		let overlayArray = []
 		if (opts.domElementGetter) {
 			const el = getDomEl(opts);
+			el.style.position = 'relative'
+			if (opts.overlay.selectors) {
+				overlayArray = overlayArray.concat(
+					opts.overlay.selectors.map((selector, i) => {
+						return createOverlayWithText(opts, document.querySelector(selector))
+					})
+				)
+			} else {
+				overlayArray = overlayArray.concat(createOverlayWithText(opts, el))
+			}
+
+			window.addEventListener('cp:show-overlay-keypress', shouldShowAllOverlays)
 
 			const loaderEls = Array.prototype.forEach.call(el.querySelectorAll('.cps-loader'), function(loaderEl) {
 				if (loaderEl.parentNode) {
@@ -111,12 +130,20 @@ function mount(opts) {
 			});
 		}
 
+		opts.overlay._shouldShowAllOverlays = shouldShowAllOverlays
 		resolve();
+
+		function shouldShowAllOverlays() {
+			overlayArray.forEach((overlayEl) => {
+				shouldShowOverlay(overlayEl)
+			})
+		}
 	});
 }
 
 function unmount(opts) {
 	return new Promise((resolve, reject) => {
+		window.removeEventListener('cp:show-overlay-keypress', opts.overlay._shouldShowAllOverlays)
 		let el;
 
 		if (opts.domElementGetter) {
