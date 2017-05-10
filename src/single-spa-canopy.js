@@ -104,7 +104,7 @@ function mount(opts) {
 				overlayArray = overlayArray.concat(
 					opts.overlay.selectors.map((selector, i) => {
 						return createOverlayWithText(opts, document.querySelector(selector))
-					})
+					}).filter(item => !!item)
 				)
 			} else {
 				overlayArray = overlayArray.concat(createOverlayWithText(opts, el))

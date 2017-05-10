@@ -22,6 +22,9 @@ export function getColorFromString (string, opacity= 0.1) {
 }
 
 export function createOverlayWithText (opts, elementToAppendChild) {
+	if (!elementToAppendChild) {
+		return null
+	}
 	const div = elementToAppendChild.appendChild(document.createElement('div'))
 	div.style.width = opts.overlay.width || '100%'
 	div.style.height = opts.overlay.height || '100%'
