@@ -1,10 +1,8 @@
 import {initializeHotReloading} from './hot-reload.js';
 import deepMerge from 'deepmerge';
-import { shouldShowOverlay, getColorFromString, createOverlayWithText, addOverlayEventListener } from './overlays.helpers.js'
+import { shouldShowOverlay, getColorFromString, createOverlayWithText, addOverlayEventListener, setupListener } from './overlays.helpers.js'
 
-if (!window._overlayListenerDefined) {
-	addOverlayEventListener()
-}
+setupListener()
 
 const defaultOpts = {
 	mainContentTransition: true,

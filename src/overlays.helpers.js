@@ -1,3 +1,9 @@
+export function setupListener () {
+	if (!window._overlayListenerDefined) {
+		addOverlayEventListener()
+	}
+}
+
 export function shouldShowOverlay (div) {
 	// check local storage for dev-overlay
 	const overlayStorage = localStorage.getItem('cp:single-spa:overlay')
