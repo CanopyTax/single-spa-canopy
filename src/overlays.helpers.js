@@ -10,6 +10,7 @@ export function shouldShowOverlay (div) {
 	const sofeInspector = localStorage.getItem('sofe-inspector')
 	const devOverlay = overlayStorage === 'true' && sofeInspector === 'true'
 	if (devOverlay && sofeInspector) {
+		shouldShowText(div)
 		div.style.display = 'block'
 	} else {
 		div.style.display = 'none'
