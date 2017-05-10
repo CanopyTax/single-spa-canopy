@@ -9,7 +9,7 @@ export function shouldShowOverlay (div) {
 	const overlayStorage = localStorage.getItem('cp:single-spa:overlay')
 	const sofeInspector = localStorage.getItem('sofe-inspector')
 	const devOverlay = overlayStorage === 'true' && sofeInspector === 'true'
-	if (devOverlay) {
+	if (devOverlay && sofeInspector) {
 		div.style.display = 'block'
 	} else {
 		div.style.display = 'none'
