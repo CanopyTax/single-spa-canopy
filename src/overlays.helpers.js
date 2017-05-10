@@ -16,6 +16,19 @@ export function shouldShowOverlay (div) {
 	}
 }
 
+export function shouldShowText (div) {
+	const overlayStorage = localStorage.getItem('cp:single-spa:overlay')
+	const sofeInspector = localStorage.getItem('sofe-inspector')
+	const devOverlay = overlayStorage === 'true' && sofeInspector === 'true'
+	if (devOverlay && sofeInspector) {
+		if (div.parentElement.clientHeight > 0 && div.parentElement.clientWidth > 0) {
+			div.children[0].style.visibility = 'visible'
+		} else {
+			div.children[0].style.visibility = 'hidden'
+		}
+	}
+}
+
 export function getColorFromString (string, opacity= 0.1) {
 	let result = (parseInt(
 		parseInt(string, 36)

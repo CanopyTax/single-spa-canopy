@@ -1,6 +1,13 @@
 import {initializeHotReloading} from './hot-reload.js';
 import deepMerge from 'deepmerge';
-import { shouldShowOverlay, getColorFromString, createOverlayWithText, addOverlayEventListener, setupListener } from './overlays.helpers.js'
+import {
+	shouldShowOverlay,
+	getColorFromString,
+	createOverlayWithText,
+	addOverlayEventListener,
+	setupListener,
+	shouldShowText
+} from './overlays.helpers.js'
 
 setupListener()
 
@@ -97,6 +104,7 @@ function mount(opts) {
 		let overlayArray = []
 		if (opts.domElementGetter) {
 			const el = getDomEl(opts);
+			overlayArray.push(createOverlayWithText(opts, el))
 			el.style.position = 'relative'
 			if (opts.overlay.selectors) {
 				overlayArray = overlayArray.concat(
@@ -109,6 +117,7 @@ function mount(opts) {
 			}
 
 			window.addEventListener('cp:show-overlay-keypress', shouldShowAllOverlays)
+			window.addEventListener('single-spa:routing-event', shouldShowAllText)
 
 			const loaderEls = Array.prototype.forEach.call(el.querySelectorAll('.cps-loader'), function(loaderEl) {
 				if (loaderEl.parentNode) {
@@ -118,11 +127,18 @@ function mount(opts) {
 		}
 
 		opts.overlay._shouldShowAllOverlays = shouldShowAllOverlays
+		opts.overlay._shouldShowAllText = shouldShowAllText
 		resolve();
 
 		function shouldShowAllOverlays() {
 			overlayArray.forEach((overlayEl) => {
 				shouldShowOverlay(overlayEl)
+			})
+		}
+
+		function shouldShowAllText() {
+			overlayArray.forEach((overlayEl) => {
+				shouldShowText(overlayEl)
 			})
 		}
 	});
@@ -131,6 +147,7 @@ function mount(opts) {
 function unmount(opts) {
 	return new Promise((resolve, reject) => {
 		window.removeEventListener('cp:show-overlay-keypress', opts.overlay._shouldShowAllOverlays)
+		window.removeEventListener('single-spa:routing-event', opts.overlay._shouldShowAllText)
 		let el;
 
 		if (opts.domElementGetter) {
