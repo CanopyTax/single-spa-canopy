@@ -9,10 +9,24 @@ export function shouldShowOverlay (div) {
 	const overlayStorage = localStorage.getItem('cp:single-spa:overlay')
 	const sofeInspector = localStorage.getItem('sofe-inspector')
 	const devOverlay = overlayStorage === 'true' && sofeInspector === 'true'
-	if (devOverlay) {
+	if (devOverlay && sofeInspector) {
+		shouldShowText(div)
 		div.style.display = 'block'
 	} else {
 		div.style.display = 'none'
+	}
+}
+
+export function shouldShowText (div) {
+	const overlayStorage = localStorage.getItem('cp:single-spa:overlay')
+	const sofeInspector = localStorage.getItem('sofe-inspector')
+	const devOverlay = overlayStorage === 'true' && sofeInspector === 'true'
+	if (devOverlay && sofeInspector) {
+		if (div.parentElement.clientHeight > 0 && div.parentElement.clientWidth > 0) {
+			div.children[0].style.visibility = 'visible'
+		} else {
+			div.children[0].style.visibility = 'hidden'
+		}
 	}
 }
 
