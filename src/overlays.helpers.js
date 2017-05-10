@@ -54,7 +54,6 @@ export function createOverlayWithText (opts, elementToAppendChild) {
 	div.style.left = opts.overlay.left || 0
 	div.style.pointerEvents = 'none'
 	div.style.background = opts.overlay.background || getColorFromString(opts.childAppName)
-	shouldShowOverlay(div)
 
 	const childDiv = div.appendChild(document.createElement('div'))
 	childDiv.style.display = 'flex'
@@ -65,6 +64,7 @@ export function createOverlayWithText (opts, elementToAppendChild) {
 	childDiv.style.height = '100%'
 	childDiv.style.fontSize = '32px'
 	childDiv.appendChild(document.createTextNode(opts.childAppName))
+	shouldShowOverlay(div)
 
 	return div
 }
