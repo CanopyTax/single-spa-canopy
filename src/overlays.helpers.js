@@ -54,8 +54,6 @@ export function addOverlayEventListener () {
 		if (evt.code === 'KeyD' && evt.shiftKey && evt.ctrlKey) {
 			localStorage.setItem('cp:single-spa:overlay', !JSON.parse(localStorage.getItem('cp:single-spa:overlay')))
 			window.dispatchEvent(new CustomEvent('cp:show-overlay-keypress'))
-		} else if (evt.keyCode === 83 && evt.shiftKey && evt.ctrlKey) {
-			window.dispatchEvent(new CustomEvent('cp:show-overlay-keypress'))
 		}
 	})
 	window._overlayListenerDefined = true
