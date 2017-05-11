@@ -119,11 +119,13 @@ function mount(opts) {
 			window.addEventListener('cp:show-overlay-keypress', shouldShowAllOverlays)
 			window.addEventListener('single-spa:routing-event', shouldShowAllText)
 
-			const loaderEls = Array.prototype.forEach.call(el.querySelectorAll('.cps-loader'), function(loaderEl) {
-				if (loaderEl.parentNode) {
-					loaderEl.parentNode.removeChild(loaderEl);
-				}
-			});
+			if (opts.mainContentTransition) {
+				const loaderEls = Array.prototype.forEach.call(el.querySelectorAll('.cps-loader.\\+page'), function(loaderEl) {
+					if (loaderEl.parentNode) {
+						loaderEl.parentNode.removeChild(loaderEl);
+					}
+				});
+			}
 		}
 
 		opts.overlay._shouldShowAllOverlays = shouldShowAllOverlays
