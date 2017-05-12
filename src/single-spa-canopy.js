@@ -1,15 +1,6 @@
 import {initializeHotReloading} from './hot-reload.js';
 import deepMerge from 'deepmerge';
-import {
-	shouldShowOverlay,
-	getColorFromString,
-	createOverlayWithText,
-	addOverlayEventListener,
-	setupListener,
-	shouldShowText
-} from './overlays.helpers.js'
-
-setupListener()
+import {toggleAllOverlays} from './overlays.helpers.js'
 
 const defaultOpts = {
 	domElementGetter: null,
@@ -26,7 +17,9 @@ const defaultOpts = {
 			waitForUnmount: true,
 		},
 	},
-	overlay: {}
+	overlay: {
+		selectors: [],
+	},
 };
 
 const domParser = new DOMParser();
@@ -55,96 +48,74 @@ export default function singleSpaCanopy(userOpts) {
 }
 
 function bootstrap(opts) {
-	return new Promise((resolve, reject) => {
-		const blockingPromises = [];
-		const moduleName = `${opts.childAppName}!sofe`;
-		blockingPromises.push(SystemJS
-			.locate({
-				name: moduleName,
-				metadata: {},
-				address: '',
-			})
-			.then(url => {
-				const overriddenToLocal = url.indexOf('https://localhost') === 0 || url.indexOf('https://ielocal') === 0;
-				const shouldHotload = overriddenToLocal && opts.hotload.dev.enabled;
+	return Promise
+		.resolve()
+		.then(() => {
+			const blockingPromises = [];
+			const moduleName = `${opts.childAppName}!sofe`;
+			blockingPromises.push(SystemJS
+				.locate({
+					name: moduleName,
+					metadata: {},
+					address: '',
+				})
+				.then(url => {
+					const overriddenToLocal = url.indexOf('https://localhost') === 0 || url.indexOf('https://ielocal') === 0;
+					const shouldHotload = overriddenToLocal && opts.hotload.dev.enabled;
 
-				if (shouldHotload) {
-					initializeHotReloading(opts, url, opts.hotload.dev.waitForUnmount);
-				}
+					if (shouldHotload) {
+						initializeHotReloading(opts, url, opts.hotload.dev.waitForUnmount);
+					}
 
-				if (window.Raven) {
-					window.Raven.setTagsContext({
-						[opts.childAppName]: url,
-					});
-				}
-			})
-		);
-
-		if (opts.featureToggles.length > 0) {
-			blockingPromises.push(
-				SystemJS
-				.import('feature-toggles!sofe')
-				.then(featureToggles => {
-					return featureToggles.fetchFeatureToggles(...opts.featureToggles)
+					if (window.Raven) {
+						window.Raven.setTagsContext({
+							[opts.childAppName]: url,
+						});
+					}
 				})
 			);
-		}
 
-		Promise.all(blockingPromises).then(resolve).catch(reject);
-	});
+			if (opts.featureToggles.length > 0) {
+				blockingPromises.push(
+					SystemJS
+					.import('feature-toggles!sofe')
+					.then(featureToggles => {
+						return featureToggles.fetchFeatureToggles(...opts.featureToggles)
+					})
+				);
+			}
+
+			return Promise.all(blockingPromises);
+		});
 }
 
 function mount(opts) {
-	return new Promise((resolve, reject) => {
-		let overlayArray = []
-		if (opts.domElementGetter) {
-			const el = getDomEl(opts);
-			overlayArray.push(createOverlayWithText(opts, el))
-			el.style.position = 'relative'
-			if (opts.overlay.selectors) {
-				overlayArray = overlayArray.concat(
-					opts.overlay.selectors.map((selector, i) => {
-						return createOverlayWithText(opts, document.querySelector(selector))
-					}).filter(item => !!item)
-				)
-			} else {
-				overlayArray = overlayArray.concat(createOverlayWithText(opts, el))
+	return Promise
+		.resolve()
+		.then(() => {
+			let overlayArray = []
+			if (opts.domElementGetter) {
+				const el = getDomEl(opts);
+				el.style.position = 'relative'
+				window.addEventListener('cp:show-overlay-keypress', toggleOverlays);
+				window.addEventListener('single-spa:routing-event', toggleOverlays);
+
+				opts.overlay._toggleOverlays = toggleOverlays;
+
+				function toggleOverlays() {
+					toggleAllOverlays(el, opts);
+				}
 			}
-
-			window.addEventListener('cp:show-overlay-keypress', shouldShowAllOverlays)
-			window.addEventListener('single-spa:routing-event', shouldShowAllText)
-		}
-
-		opts.overlay._shouldShowAllOverlays = shouldShowAllOverlays
-		opts.overlay._shouldShowAllText = shouldShowAllText
-		resolve();
-
-		function shouldShowAllOverlays() {
-			overlayArray.forEach((overlayEl) => {
-				shouldShowOverlay(overlayEl)
-			})
-		}
-
-		function shouldShowAllText() {
-			overlayArray.forEach((overlayEl) => {
-				shouldShowText(overlayEl)
-			})
-		}
-	});
+		});
 }
 
 function unmount(opts) {
-	return new Promise((resolve, reject) => {
-		window.removeEventListener('cp:show-overlay-keypress', opts.overlay._shouldShowAllOverlays)
-		window.removeEventListener('single-spa:routing-event', opts.overlay._shouldShowAllText)
-		let el;
-
-		if (opts.domElementGetter) {
-			el = getDomEl(opts);
-		}
-
-		resolve();
-	});
+	return Promise
+		.resolve()
+		.then(() => {
+			window.removeEventListener('cp:show-overlay-keypress', opts.overlay._toggleOverlays)
+			window.removeEventListener('single-spa:routing-event', opts.overlay._toggleOverlays)
+		})
 }
 
 function unload(opts, props) {
