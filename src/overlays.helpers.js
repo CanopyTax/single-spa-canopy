@@ -1,36 +1,47 @@
-export function setupListener () {
-	if (!window._overlayListenerDefined) {
-		addOverlayEventListener()
-	}
-}
+const overlayDivClassName = `cp-single-spa-canopy__overlay--div`;
 
-export function shouldShowOverlay (div) {
-	// check local storage for dev-overlay
-	const overlayStorage = localStorage.getItem('cp:single-spa:overlay')
-	const sofeInspector = localStorage.getItem('sofe-inspector')
-	const devOverlay = overlayStorage === 'true' && sofeInspector === 'true'
-	if (devOverlay && sofeInspector) {
-		shouldShowText(div)
-		div.style.display = 'block'
-	} else {
-		div.style.display = 'none'
-	}
-}
-
-export function shouldShowText (div) {
-	const overlayStorage = localStorage.getItem('cp:single-spa:overlay')
-	const sofeInspector = localStorage.getItem('sofe-inspector')
-	const devOverlay = overlayStorage === 'true' && sofeInspector === 'true'
-	if (devOverlay && sofeInspector) {
-		if (div.parentElement.clientHeight > 0 && div.parentElement.clientWidth > 0) {
-			div.children[0].style.visibility = 'visible'
-		} else {
-			div.children[0].style.visibility = 'hidden'
+if (!window._overlayListenerDefined) {
+	window.addEventListener('keypress', function (evt) {
+		if (evt.key === 'D' && evt.shiftKey && evt.ctrlKey) {
+			localStorage.setItem('cp:single-spa:overlay', !JSON.parse(localStorage.getItem('cp:single-spa:overlay')))
+			window.dispatchEvent(new CustomEvent('cp:show-overlay-keypress'))
 		}
+	})
+	window._overlayListenerDefined = true
+}
+
+export function toggleAllOverlays(rootElement, opts) {
+	const overlayEnabled = localStorage.getItem('cp:single-spa:overlay') === 'true' && localStorage.getItem('sofe-inspector') === 'true';
+	toggleOverlay(rootElement, overlayEnabled, opts);
+
+	const selectorNodeLists = opts.overlay.selectors.map(selector => rootElement.querySelectorAll(selector));
+	selectorNodeLists.forEach(selectorNodeList => {
+		for (let i=0; i<selectorNodeList.length; i++) {
+			toggleOverlay(selectorNodeList[i], overlayEnabled, opts);
+		}
+	});
+}
+
+function toggleOverlay(element, overlayEnabled, opts) {
+	let overlayDiv = element.querySelector('.' + overlayDivClassName);
+	if (!overlayDiv) {
+		overlayDiv = createOverlayWithText(opts, element);
+	}
+
+	if (overlayEnabled) {
+		overlayDiv.style.display = 'block'
+
+		if (overlayDiv.parentElement.clientHeight > 0 && overlayDiv.parentElement.clientWidth > 0) {
+			overlayDiv.childDiv.style.visibility = 'visible'
+		} else {
+			overlayDiv.childDiv.style.visibility = 'hidden'
+		}
+	} else {
+		overlayDiv.style.display = 'none'
 	}
 }
 
-export function getColorFromString (string, opacity= 0.1) {
+function getColorFromString (string, opacity= 0.1) {
 	let result = (parseInt(
 		parseInt(string, 36)
 			.toExponential()
@@ -41,11 +52,12 @@ export function getColorFromString (string, opacity= 0.1) {
 	return `rgba(${parseInt(rgba[0])}, ${parseInt(rgba[1])}, ${parseInt(rgba[2])}, ${opacity})`
 }
 
-export function createOverlayWithText (opts, elementToAppendChild) {
+function createOverlayWithText (opts, elementToAppendChild) {
 	if (!elementToAppendChild) {
 		return null
 	}
 	const div = elementToAppendChild.appendChild(document.createElement('div'))
+	div.className = overlayDivClassName;
 	div.style.width = opts.overlay.width || '100%'
 	div.style.height = opts.overlay.height || '100%'
 	div.style.zIndex = opts.overlay.zIndex || 50
@@ -57,24 +69,33 @@ export function createOverlayWithText (opts, elementToAppendChild) {
 
 	const childDiv = div.appendChild(document.createElement('div'))
 	childDiv.style.display = 'flex'
+	childDiv.style.flexDirection = 'column'
 	childDiv.style.alignItems = 'center'
 	childDiv.style.justifyContent = 'center'
 	childDiv.style.color = getColorFromString(opts.childAppName, 1)
 	childDiv.style.fontWeight = 'bold'
 	childDiv.style.height = '100%'
 	childDiv.style.fontSize = '32px'
-	childDiv.appendChild(document.createTextNode(opts.childAppName))
-	shouldShowOverlay(div)
+	const appNameDiv = document.createElement('div');
+	appNameDiv.appendChild(document.createTextNode(opts.childAppName));
+	childDiv.appendChild(appNameDiv);
+
+	SystemJS
+		.import('sentry-error-logging!sofe')
+		.then(sentry => {
+			if (typeof sentry.serviceNameToSquad === 'function') {
+				const squadDiv = document.createElement('div');
+				squadDiv.appendChild(document.createTextNode(`(${sentry.serviceNameToSquad(opts.childAppName)} squad)`));
+				childDiv.appendChild(squadDiv);
+			}
+		})
+		.catch(err => {
+			setTimeout(() => {
+				throw err;
+			})
+		});
+
+	div.childDiv = childDiv;
 
 	return div
-}
-
-export function addOverlayEventListener () {
-	window.addEventListener('keypress', function (evt) {
-		if (evt.code === 'KeyD' && evt.shiftKey && evt.ctrlKey) {
-			localStorage.setItem('cp:single-spa:overlay', !JSON.parse(localStorage.getItem('cp:single-spa:overlay')))
-			window.dispatchEvent(new CustomEvent('cp:show-overlay-keypress'))
-		}
-	})
-	window._overlayListenerDefined = true
 }
