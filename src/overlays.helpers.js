@@ -12,20 +12,20 @@ if (!window._overlayListenerDefined) {
 
 export function toggleAllOverlays(rootElement, opts) {
 	const overlayEnabled = localStorage.getItem('cp:single-spa:overlay') === 'true' && localStorage.getItem('sofe-inspector') === 'true';
-	toggleOverlay(rootElement, overlayEnabled, opts);
+	toggleOverlay(rootElement, overlayEnabled, opts, [overlayDivClassName, 'rootElement']);
 
 	const selectorNodeLists = opts.overlay.selectors.map(selector => rootElement.querySelectorAll(selector));
 	selectorNodeLists.forEach(selectorNodeList => {
 		for (let i=0; i<selectorNodeList.length; i++) {
-			toggleOverlay(selectorNodeList[i], overlayEnabled, opts);
+			toggleOverlay(selectorNodeList[i], overlayEnabled, opts, [overlayDivClassName]);
 		}
 	});
 }
 
-function toggleOverlay(element, overlayEnabled, opts) {
-	let overlayDiv = element.querySelector('.' + overlayDivClassName);
+function toggleOverlay(element, overlayEnabled, opts, classes) {
+	let overlayDiv = element.querySelector("." + classes.join('.'));
 	if (!overlayDiv) {
-		overlayDiv = createOverlayWithText(opts, element);
+		overlayDiv = createOverlayWithText(opts, element, classes);
 	}
 
 	if (overlayEnabled) {
@@ -52,12 +52,12 @@ function getColorFromString (string, opacity= 0.1) {
 	return `rgba(${parseInt(rgba[0])}, ${parseInt(rgba[1])}, ${parseInt(rgba[2])}, ${opacity})`
 }
 
-function createOverlayWithText (opts, elementToAppendChild) {
+function createOverlayWithText (opts, elementToAppendChild, classes) {
 	if (!elementToAppendChild) {
 		return null
 	}
 	const div = elementToAppendChild.appendChild(document.createElement('div'))
-	div.className = overlayDivClassName;
+	div.className = classes.join(" ");
 	div.style.width = opts.overlay.width || '100%'
 	div.style.height = opts.overlay.height || '100%'
 	div.style.zIndex = opts.overlay.zIndex || 50
@@ -69,7 +69,7 @@ function createOverlayWithText (opts, elementToAppendChild) {
 
 	const childDiv = div.appendChild(document.createElement('div'))
 	childDiv.style.display = 'flex'
-	childDiv.style.flexDirection = 'column'
+	childDiv.style.flexDirection = elementToAppendChild.clientHeight > 80 ? 'column' : 'row';
 	childDiv.style.alignItems = 'center'
 	childDiv.style.justifyContent = 'center'
 	childDiv.style.color = getColorFromString(opts.childAppName, 1)
@@ -86,6 +86,7 @@ function createOverlayWithText (opts, elementToAppendChild) {
 			if (typeof sentry.serviceNameToSquad === 'function') {
 				const squadDiv = document.createElement('div');
 				squadDiv.appendChild(document.createTextNode(`(${sentry.serviceNameToSquad(opts.childAppName)} squad)`));
+				squadDiv.style.marginLeft = '2px';
 				childDiv.appendChild(squadDiv);
 			}
 		})
