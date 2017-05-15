@@ -41,14 +41,22 @@ function toggleOverlay(element, overlayEnabled, opts, classes) {
 	}
 }
 
-function getColorFromString (string, opacity= 0.1) {
+function getColorFromString (string, opacity = 0.1) {
+	const hex = getHexFromString(string)
+	return getRGBAFromHex(hex, opacity)
+}
+
+function getHexFromString (string) {
 	let result = (parseInt(
 		parseInt(string, 36)
 			.toExponential()
 			.slice(2, -5)
 	, 10) & 0XFFFFFF).toString(16).toUpperCase()
-	result = result.split('').concat([0,0,0,0,0,0]).slice(0,6).join('')
-	const rgba = [`0x${result.slice(0, 2)}`, `0x${result.slice(2, 4)}`, `0x${result.slice(4, 6)}`]
+	return result.split('').concat([0,0,0,0,0,0]).slice(0,6).join('')
+}
+
+function getRGBAFromHex (hex, opacity = 0.1) {
+	const rgba = [`0x${hex.slice(0, 2)}`, `0x${hex.slice(2, 4)}`, `0x${hex.slice(4, 6)}`]
 	return `rgba(${parseInt(rgba[0])}, ${parseInt(rgba[1])}, ${parseInt(rgba[2])}, ${opacity})`
 }
 
@@ -65,14 +73,22 @@ function createOverlayWithText (opts, elementToAppendChild, classes) {
 	div.style.top = opts.overlay.top || 0
 	div.style.left = opts.overlay.left || 0
 	div.style.pointerEvents = 'none'
-	div.style.background = opts.overlay.background || getColorFromString(opts.childAppName)
+	let backgroundColor
+	if (opts.overlay.color) {
+		backgroundColor = getRGBAFromHex(opts.overlay.color)
+	} else if (opts.overlay.background) {
+		backgroundColor = opts.overlay.background
+	} else {
+		backgroundColor = getColorFromString(opts.childAppName)
+	}
+	div.style.background = backgroundColor
 
 	const childDiv = div.appendChild(document.createElement('div'))
 	childDiv.style.display = 'flex'
 	childDiv.style.flexDirection = elementToAppendChild.clientHeight > 80 ? 'column' : 'row';
 	childDiv.style.alignItems = 'center'
 	childDiv.style.justifyContent = 'center'
-	childDiv.style.color = opts.overlay.textColor || getColorFromString(opts.childAppName, 1)
+	childDiv.style.color = opts.overlay.color || opts.overlay.textColor || getColorFromString(opts.childAppName, 1)
 	childDiv.style.fontWeight = 'bold'
 	childDiv.style.height = '100%'
 	childDiv.style.fontSize = '32px'
