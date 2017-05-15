@@ -72,7 +72,7 @@ function createOverlayWithText (opts, elementToAppendChild, classes) {
 	childDiv.style.flexDirection = elementToAppendChild.clientHeight > 80 ? 'column' : 'row';
 	childDiv.style.alignItems = 'center'
 	childDiv.style.justifyContent = 'center'
-	childDiv.style.color = getColorFromString(opts.childAppName, 1)
+	childDiv.style.color = opts.overlay.textColor || getColorFromString(opts.childAppName, 1)
 	childDiv.style.fontWeight = 'bold'
 	childDiv.style.height = '100%'
 	childDiv.style.fontSize = '32px'
