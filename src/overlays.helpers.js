@@ -60,7 +60,7 @@ function createOverlayWithText (opts, elementToAppendChild, classes) {
 	div.className = classes.join(" ");
 	div.style.width = opts.overlay.width || '100%'
 	div.style.height = opts.overlay.height || '100%'
-	div.style.zIndex = opts.overlay.zIndex || 50
+	div.style.zIndex = opts.overlay.zIndex || 40
 	div.style.position = opts.overlay.position || 'absolute'
 	div.style.top = opts.overlay.top || 0
 	div.style.left = opts.overlay.left || 0
