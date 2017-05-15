@@ -74,8 +74,9 @@ function createOverlayWithText (opts, elementToAppendChild, classes) {
 	div.style.left = opts.overlay.left || 0
 	div.style.pointerEvents = 'none'
 	let backgroundColor
-	if (opts.overlay.color) {
-		backgroundColor = getRGBAFromHex(opts.overlay.color)
+	const hexRegex = /^#[A-Fa-f0-9]{6}$/g
+	if (opts.overlay.color && hexRegex.test(opts.overlay.color)) {
+		backgroundColor = getRGBAFromHex(opts.overlay.color.replace('#', ''))
 	} else if (opts.overlay.background) {
 		backgroundColor = opts.overlay.background
 	} else {
