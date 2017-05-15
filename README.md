@@ -25,8 +25,7 @@ const canopyLifecycles = singleSpaCanopy({
     },
     overlay: {
       selectors: ['.cssQuerySelector', '#anotherSelector'],
-      background: 'rgba(0, 160, 176, 0.1)',
-      textColor: '#00A0B0',
+      color: '#00A0B0',
       zIndex: 40
     }
   },
