@@ -24,7 +24,10 @@ const canopyLifecycles = singleSpaCanopy({
       waitForUnmount: false,
     },
     overlay: {
-      selectors: ['.cssQuerySelector', '#anotherSelector']
+      selectors: ['.cssQuerySelector', '#anotherSelector'],
+      background: 'rgba(0, 160, 176, 0.1)',
+      textColor: '#00A0B0',
+      zIndex: 40
     }
   },
 });
@@ -54,4 +57,4 @@ export const unload = [
 - `React`: (optional) The react object, which will be used to determine if the child application is using the same version of React that is used by spalpatine.
 - `featureToggles`: (optional) An array of strings, which are the names of feature toggles to fetch before this app is mounted.
 - `hotload`: (optional) An object that configures whether you would like to hot reload this single-spa application.
-- `overlay`: (optional) An Object that configures overlays. This feature is still somewhat experimental and makes a lot of guesses on overlay settings, most of the time you won't need this setting.
+- `overlay`: (optional) An Object that configures overlays. This feature is still somewhat experimental and makes a lot of guesses on overlay settings, most of the time you won't need this setting. There are a lot of optional overrides that you can use. Some are shown above.
