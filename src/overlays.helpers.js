@@ -2,7 +2,7 @@ const overlayDivClassName = `cp-single-spa-canopy__overlay--div`;
 
 if (!window._overlayListenerDefined) {
 	window.addEventListener('keypress', function (evt) {
-		if (evt.key === 'D' && evt.shiftKey && evt.ctrlKey) {
+		if (evt.key === '~' && evt.shiftKey && evt.ctrlKey) {
 			localStorage.setItem('cp:single-spa:overlay', !JSON.parse(localStorage.getItem('cp:single-spa:overlay')))
 			window.dispatchEvent(new CustomEvent('cp:show-overlay-keypress'))
 		}
