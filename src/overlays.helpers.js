@@ -11,7 +11,7 @@ if (!window._overlayListenerDefined) {
 }
 
 export function toggleAllOverlays(rootElement, opts) {
-	const overlayEnabled = localStorage.getItem('cp:single-spa:overlay') === 'true' && localStorage.getItem('sofe-inspector') === 'true';
+	const overlayEnabled = localStorage.getItem('cp:single-spa:overlay') === 'true' && (localStorage.getItem('sofe-inspector') === 'true' || localStorage.getItem('cp:dev-overlay') === true)
 	toggleOverlay(rootElement, overlayEnabled, opts, [overlayDivClassName, 'rootElement']);
 
 	const selectorNodeLists = opts.overlay.selectors.map(selector => rootElement.querySelectorAll(selector));
