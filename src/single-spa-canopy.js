@@ -1,8 +1,8 @@
 import {initializeHotReloading} from './hot-reload.js';
 import deepMerge from 'deepmerge';
+import {toggleAllOverlays} from './overlays.helpers.js'
 
 const defaultOpts = {
-	mainContentTransition: true,
 	domElementGetter: null,
 	childAppName: null,
 	featureToggles: [],
@@ -17,6 +17,9 @@ const defaultOpts = {
 			waitForUnmount: true,
 		},
 	},
+	overlay: {
+		selectors: [],
+	},
 };
 
 const domParser = new DOMParser();
@@ -27,10 +30,6 @@ export default function singleSpaCanopy(userOpts) {
 	}
 
 	const opts = deepMerge(defaultOpts, userOpts);
-
-	if (opts.mainContentTransition && !opts.domElementGetter) {
-		throw new Error(`In order to show a transition between apps, single-spa-canopy requires opts.domElementGetter function`);
-	}
 
 	if (typeof opts.childAppName !== 'string') {
 		throw new Error(`single-spa-canopy requires opts.childAppName string`);
@@ -49,29 +48,20 @@ export default function singleSpaCanopy(userOpts) {
 }
 
 function bootstrap(opts) {
-	return new Promise((resolve, reject) => {
+	return Promise
+		.resolve()
+		.then(() => {
 			const blockingPromises = [];
 			const moduleName = `${opts.childAppName}!sofe`;
 			blockingPromises.push(SystemJS
-				.import('sofe')
-				.then(({getServiceUrl, InvalidServiceName}) => {
-					let url = '', invalidName = false;
-
-					try {
-						url = getServiceUrl(opts.childAppName);
-					} catch (e) {
-						if (e instanceof InvalidServiceName) {
-							console.warn(
-								`The single-spa child app name is not the same as the sofe service!
-								This means that hotloading will not work!`
-							);
-							invalidName = true;
-						} else {
-							throw e;
-						}
-					}
+				.locate({
+					name: moduleName,
+					metadata: {},
+					address: '',
+				})
+				.then(url => {
 					const overriddenToLocal = url.indexOf('https://localhost') === 0 || url.indexOf('https://ielocal') === 0;
-					const shouldHotload = !invalidName && overriddenToLocal && opts.hotload.dev.enabled;
+					const shouldHotload = overriddenToLocal && opts.hotload.dev.enabled;
 
 					if (shouldHotload) {
 						initializeHotReloading(opts, url, opts.hotload.dev.waitForUnmount);
@@ -95,45 +85,37 @@ function bootstrap(opts) {
 				);
 			}
 
-			Promise.all(blockingPromises).then(resolve).catch(reject);
+			return Promise.all(blockingPromises);
 		});
 }
 
 function mount(opts) {
-	return new Promise((resolve, reject) => {
-		if (opts.domElementGetter) {
-			const el = getDomEl(opts);
+	return Promise
+		.resolve()
+		.then(() => {
+			let overlayArray = []
+			if (opts.domElementGetter) {
+				const el = getDomEl(opts);
+				el.style.position = 'relative'
+				window.addEventListener('cp:show-overlay-keypress', toggleOverlays);
+				window.addEventListener('single-spa:routing-event', toggleOverlays);
 
-			const loaderEls = Array.prototype.forEach.call(el.querySelectorAll('.cps-loader'), function(loaderEl) {
-				if (loaderEl.parentNode) {
-					loaderEl.parentNode.removeChild(loaderEl);
+				opts.overlay._toggleOverlays = toggleOverlays;
+
+				function toggleOverlays() {
+					toggleAllOverlays(el, opts);
 				}
-			});
-		}
-
-		resolve();
-	});
+			}
+		});
 }
 
 function unmount(opts) {
-	return new Promise((resolve, reject) => {
-		let el;
-
-		if (opts.domElementGetter) {
-			el = getDomEl(opts);
-		}
-
-		if (opts.mainContentTransition) {
-			putLoaderIntoEl(el);
-		}
-
-		const cpMainContent = document.getElementById('cp-main-content');
-		if (cpMainContent.childNodes.length === 0) {
-			putLoaderIntoEl(cpMainContent);
-		}
-
-		resolve();
-	});
+	return Promise
+		.resolve()
+		.then(() => {
+			window.removeEventListener('cp:show-overlay-keypress', opts.overlay._toggleOverlays)
+			window.removeEventListener('single-spa:routing-event', opts.overlay._toggleOverlays)
+		})
 }
 
 function unload(opts, props) {
@@ -162,30 +144,6 @@ function unload(opts, props) {
 			.then(() => SystemJS.reload(opts.childAppName));
 	} else {
 		return Promise.reject(`Cannot hotload app '${opts.childAppName}' because SystemJS.trace is false or SystemJS.reload is undefined. Try running localStorage.setItem('common-deps', 'dev') and refreshing the page.`);
-	}
-}
-
-function putLoaderIntoEl(el) {
-	const secondaryNavEl = document.querySelector('.cps-secondarynav');
-	const topNavSecondaryEl = document.querySelector('.cps-topnav-secondary');
-	const topNavEl = document.querySelector('.cps-topnav');
-	const bannerEl = document.querySelector('.cps-banner-global');
-
-	const leftOffset = secondaryNavEl ? secondaryNavEl.clientWidth / 2 : 0;
-	const topOffset = (clientHeight(bannerEl) + clientHeight(topNavEl) + clientHeight(topNavSecondaryEl)) / 2;
-
-	const parsedDoc = domParser.parseFromString(`
-		<div class="cps-loader +page" style="position: fixed; left: calc(50% + ${leftOffset}px); top: calc(50% + ${topOffset}px); transform: translate(-50%, -50%)">
-			<span></span>
-			<span></span>
-			<span></span>
-		</div>
-		`, 'text/html');
-
-	el.appendChild(parsedDoc.documentElement.querySelector('body').children[0]);
-
-	function clientHeight(el) {
-		return el ? el.clientHeight : 0;
 	}
 }
 
