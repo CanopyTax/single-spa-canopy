@@ -15,11 +15,16 @@ export function toggleAllOverlays(rootElement, opts) {
 	toggleOverlay(rootElement, overlayEnabled, opts, [overlayDivClassName, 'rootElement']);
 
 	const selectorNodeLists = opts.overlay.selectors.map(selector => rootElement.querySelectorAll(selector));
-	selectorNodeLists.forEach(selectorNodeList => {
-		for (let i=0; i<selectorNodeList.length; i++) {
-			toggleOverlay(selectorNodeList[i], overlayEnabled, opts, [overlayDivClassName]);
-		}
-	});
+	const interval = setInterval(() => {
+		selectorNodeLists.forEach(selectorNodeList => {
+			for (let i=0; i<selectorNodeList.length; i++) {
+				toggleOverlay(selectorNodeList[i], overlayEnabled, opts, [overlayDivClassName]);
+			}
+		});
+	}, 250)
+	setTimeout(() => {
+		clearInterval(interval)
+	}, 2000)
 }
 
 function toggleOverlay(element, overlayEnabled, opts, classes) {
