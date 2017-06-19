@@ -18,7 +18,7 @@ function canDevOverlayBeTurnedOn () {
 }
 
 export function setOrRemoveAllOverlays(rootElement, opts) {
-	const overlayEnabled = localStorage.getItem('cp:single-spa:overlay') === 'true')
+	const overlayEnabled = localStorage.getItem('cp:single-spa:overlay') === 'true'
 	setOrRemoveOverlay(rootElement, overlayEnabled, opts, [overlayDivClassName, 'rootElement']);
 
 	const selectorNodeLists = opts.overlay.selectors.map(selector => rootElement.querySelectorAll(selector));
