@@ -19,19 +19,29 @@ function canDevOverlayBeTurnedOn () {
 
 export function setOrRemoveAllOverlays(rootElement, opts) {
 	const overlayEnabled = localStorage.getItem('cp:single-spa:overlay') === 'true'
-	setOrRemoveOverlay(rootElement, overlayEnabled, opts, [overlayDivClassName, 'rootElement']);
 
+	clearInterval(opts.overlay._interval)
+	if (overlayEnabled) {
+		opts.overlay._interval = setInterval(() => {
+			immediatelySetOrRemoveAllOverlays(rootElement, opts, overlayEnabled)
+		}, 250)
+		setTimeout(() => {
+			clearInterval(opts.overlay._interval)
+		}, 2000)
+	} else {
+		immediatelySetOrRemoveAllOverlays(rootElement, opts, overlayEnabled)
+	}
+}
+
+function immediatelySetOrRemoveAllOverlays(rootElement, opts, overlayEnabled) {
+	setOrRemoveOverlay(rootElement, overlayEnabled, opts, [overlayDivClassName, 'rootElement']);
 	const selectorNodeLists = opts.overlay.selectors.map(selector => rootElement.querySelectorAll(selector));
-	const interval = setInterval(() => {
-		selectorNodeLists.forEach(selectorNodeList => {
-			for (let i=0; i<selectorNodeList.length; i++) {
-				setOrRemoveOverlay(selectorNodeList[i], overlayEnabled, opts, [overlayDivClassName]);
-			}
-		});
-	}, 250)
-	setTimeout(() => {
-		clearInterval(interval)
-	}, 2000)
+
+	selectorNodeLists.forEach(selectorNodeList => {
+		for (let i=0; i<selectorNodeList.length; i++) {
+			setOrRemoveOverlay(selectorNodeList[i], overlayEnabled, opts, [overlayDivClassName]);
+		}
+	});
 }
 
 function setOrRemoveOverlay(element, overlayEnabled, opts, classes) {
