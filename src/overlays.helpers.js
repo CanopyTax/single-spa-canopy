@@ -14,7 +14,11 @@ if (!window._overlayListenerDefined && canDevOverlayBeTurnedOn()) {
 // We don't want our customers to ever see the dev overlay. This will prevent the eventListener from even being created 
 //  without the correct localStorage varables being set.
 function canDevOverlayBeTurnedOn () {
-	return localStorage.getItem('sofe-inspector') === 'true' || localStorage.getItem('cp:dev-overlay') === 'true'
+	if (typeof localStorage === 'undefined') {
+		return false
+	} else {
+		return localStorage.getItem('sofe-inspector') === 'true' || localStorage.getItem('cp:dev-overlay') === 'true'
+	}
 }
 
 export function setOrRemoveAllOverlays(rootElement, opts) {
