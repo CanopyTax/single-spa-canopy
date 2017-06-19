@@ -1,6 +1,7 @@
 const overlayDivClassName = `cp-single-spa-canopy__overlay--div`;
 
-if (!window._overlayListenerDefined) {
+// We will only add the event listener if it isn't already defined and certain localStorage variables are set to true
+if (!window._overlayListenerDefined && canDevOverlayBeTurnedOn()) {
 	window.addEventListener('keypress', function (evt) {
 		if (evt.key === '~' && evt.shiftKey && evt.ctrlKey) {
 			localStorage.setItem('cp:single-spa:overlay', !JSON.parse(localStorage.getItem('cp:single-spa:overlay')))
@@ -10,8 +11,14 @@ if (!window._overlayListenerDefined) {
 	window._overlayListenerDefined = true
 }
 
-	const overlayEnabled = localStorage.getItem('cp:single-spa:overlay') === 'true' && (localStorage.getItem('sofe-inspector') === 'true' || localStorage.getItem('cp:dev-overlay') === true)
+// We don't want our customers to ever see the dev overlay. This will prevent the eventListener from even being created 
+//  without the correct localStorage varables being set.
+function canDevOverlayBeTurnedOn () {
+	return localStorage.getItem('sofe-inspector') === 'true' || localStorage.getItem('cp:dev-overlay') === true
+}
+
 export function setOrRemoveAllOverlays(rootElement, opts) {
+	const overlayEnabled = localStorage.getItem('cp:single-spa:overlay') === 'true')
 	setOrRemoveOverlay(rootElement, overlayEnabled, opts, [overlayDivClassName, 'rootElement']);
 
 	const selectorNodeLists = opts.overlay.selectors.map(selector => rootElement.querySelectorAll(selector));
