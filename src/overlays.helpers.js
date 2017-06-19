@@ -10,15 +10,15 @@ if (!window._overlayListenerDefined) {
 	window._overlayListenerDefined = true
 }
 
-export function toggleAllOverlays(rootElement, opts) {
 	const overlayEnabled = localStorage.getItem('cp:single-spa:overlay') === 'true' && (localStorage.getItem('sofe-inspector') === 'true' || localStorage.getItem('cp:dev-overlay') === true)
-	toggleOverlay(rootElement, overlayEnabled, opts, [overlayDivClassName, 'rootElement']);
+export function setOrRemoveAllOverlays(rootElement, opts) {
+	setOrRemoveOverlay(rootElement, overlayEnabled, opts, [overlayDivClassName, 'rootElement']);
 
 	const selectorNodeLists = opts.overlay.selectors.map(selector => rootElement.querySelectorAll(selector));
 	const interval = setInterval(() => {
 		selectorNodeLists.forEach(selectorNodeList => {
 			for (let i=0; i<selectorNodeList.length; i++) {
-				toggleOverlay(selectorNodeList[i], overlayEnabled, opts, [overlayDivClassName]);
+				setOrRemoveOverlay(selectorNodeList[i], overlayEnabled, opts, [overlayDivClassName]);
 			}
 		});
 	}, 250)
@@ -27,7 +27,7 @@ export function toggleAllOverlays(rootElement, opts) {
 	}, 2000)
 }
 
-function toggleOverlay(element, overlayEnabled, opts, classes) {
+function setOrRemoveOverlay(element, overlayEnabled, opts, classes) {
 	let overlayDiv = element.querySelector("." + classes.join('.'));
 	if (!overlayDiv) {
 		overlayDiv = createOverlayWithText(opts, element, classes);
