@@ -1,6 +1,6 @@
 import {initializeHotReloading} from './hot-reload.js';
 import deepMerge from 'deepmerge';
-import {toggleAllOverlays} from './overlays.helpers.js'
+import {setOrRemoveAllOverlays} from './overlays.helpers.js'
 
 const defaultOpts = {
 	domElementGetter: null,
@@ -124,7 +124,7 @@ function mount(opts) {
 				opts.overlay._toggleOverlays = toggleOverlays;
 
 				function toggleOverlays() {
-					toggleAllOverlays(el, opts);
+					setOrRemoveAllOverlays(el, opts);
 				}
 			}
 		});
