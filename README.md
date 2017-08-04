@@ -23,12 +23,12 @@ const canopyLifecycles = singleSpaCanopy({
       enabled: false,
       waitForUnmount: false,
     },
-    overlay: {
-      selectors: ['.cssQuerySelector', '#anotherSelector'],
-      color: '#00A0B0',
-      zIndex: 40
-    }
   },
+  overlay: {
+    selectors: ['.cssQuerySelector', '#anotherSelector'],
+    color: '#00A0B0',
+    zIndex: 40
+  }
 });
 
 export const bootstrap = [
