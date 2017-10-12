@@ -6,6 +6,7 @@ const defaultOpts = {
 	domElementGetter: null,
 	childAppName: null,
 	featureToggles: [],
+	position: 'relative',
 	hotload: {
 		warnCss: true,
 		dev: {
@@ -117,7 +118,7 @@ function mount(opts) {
 			let overlayArray = []
 			if (opts.domElementGetter) {
 				const el = getDomEl(opts);
-				el.style.position = 'relative'
+				el.style.position = opts.position
 				window.addEventListener('cp:show-overlay-keypress', toggleOverlays);
 				window.addEventListener('single-spa:routing-event', toggleOverlays);
 
