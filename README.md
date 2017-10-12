@@ -57,3 +57,4 @@ export const unload = [
 - `featureToggles`: (optional) An array of strings, which are the names of feature toggles to fetch before this app is mounted.
 - `hotload`: (optional) An object that configures whether you would like to hot reload this single-spa application.
 - `overlay`: (optional) An Object that configures overlays. This feature is still somewhat experimental and makes a lot of guesses on overlay settings, most of the time you won't need this setting. There are a lot of optional overrides that you can use. Some are shown above.
+- `position`: (optional) A string that is applied to the CSS style (position) on the child app. Defaults to relative to enable the overlays to work.
