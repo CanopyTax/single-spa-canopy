@@ -21,37 +21,37 @@ function canDevOverlayBeTurnedOn () {
   }
 }
 
-export function setOrRemoveAllOverlays(rootElement, opts) {
+export function setOrRemoveAllOverlays(rootElement, opts, props) {
   const overlayEnabled = localStorage.getItem('cp:single-spa:overlay') === 'true'
 
   clearInterval(opts.overlay._interval)
   if (overlayEnabled) {
     opts.overlay._interval = setInterval(() => {
-      immediatelySetOrRemoveAllOverlays(rootElement, opts, overlayEnabled)
+      immediatelySetOrRemoveAllOverlays(rootElement, opts, props, overlayEnabled)
     }, 250)
     setTimeout(() => {
       clearInterval(opts.overlay._interval)
     }, 2000)
   } else {
-    immediatelySetOrRemoveAllOverlays(rootElement, opts, overlayEnabled)
+    immediatelySetOrRemoveAllOverlays(rootElement, opts, props, overlayEnabled)
   }
 }
 
-function immediatelySetOrRemoveAllOverlays(rootElement, opts, overlayEnabled) {
-  setOrRemoveOverlay(rootElement, overlayEnabled, opts, [overlayDivClassName, 'rootElement']);
+function immediatelySetOrRemoveAllOverlays(rootElement, opts, props, overlayEnabled) {
+  setOrRemoveOverlay(rootElement, overlayEnabled, opts, props, [overlayDivClassName, 'rootElement']);
   const selectorNodeLists = opts.overlay.selectors.map(selector => rootElement.querySelectorAll(selector));
 
   selectorNodeLists.forEach(selectorNodeList => {
     for (let i=0; i<selectorNodeList.length; i++) {
-      setOrRemoveOverlay(selectorNodeList[i], overlayEnabled, opts, [overlayDivClassName]);
+      setOrRemoveOverlay(selectorNodeList[i], overlayEnabled, opts, props, [overlayDivClassName]);
     }
   });
 }
 
-function setOrRemoveOverlay(element, overlayEnabled, opts, classes) {
+function setOrRemoveOverlay(element, overlayEnabled, opts, props, classes) {
   let overlayDiv = element.querySelector("." + classes.join('.'));
   if (!overlayDiv) {
-    overlayDiv = createOverlayWithText(opts, element, classes);
+    overlayDiv = createOverlayWithText(opts, props, element, classes);
   }
 
   if (overlayEnabled) {
@@ -86,7 +86,7 @@ function getRGBAFromHex (hex, opacity = 0.1) {
   return `rgba(${parseInt(rgba[0])}, ${parseInt(rgba[1])}, ${parseInt(rgba[2])}, ${opacity})`
 }
 
-function createOverlayWithText (opts, elementToAppendChild, classes) {
+function createOverlayWithText (opts, props, elementToAppendChild, classes) {
   if (!elementToAppendChild) {
     return null
   }
@@ -106,7 +106,7 @@ function createOverlayWithText (opts, elementToAppendChild, classes) {
   } else if (opts.overlay.background) {
     backgroundColor = opts.overlay.background
   } else {
-    backgroundColor = getColorFromString(opts.childAppName)
+    backgroundColor = getColorFromString(props.childAppName)
   }
   div.style.background = backgroundColor
 
@@ -115,12 +115,12 @@ function createOverlayWithText (opts, elementToAppendChild, classes) {
   childDiv.style.flexDirection = elementToAppendChild.clientHeight > 80 ? 'column' : 'row';
   childDiv.style.alignItems = 'center'
   childDiv.style.justifyContent = 'center'
-  childDiv.style.color = opts.overlay.color || opts.overlay.textColor || getColorFromString(opts.childAppName, 1)
+  childDiv.style.color = opts.overlay.color || opts.overlay.textColor || getColorFromString(props.childAppName, 1)
   childDiv.style.fontWeight = 'bold'
   childDiv.style.height = '100%'
   childDiv.style.fontSize = '32px'
   const appNameDiv = document.createElement('div');
-  appNameDiv.appendChild(document.createTextNode(opts.childAppName));
+  appNameDiv.appendChild(document.createTextNode(props.childAppName));
   childDiv.appendChild(appNameDiv);
 
   SystemJS
@@ -128,7 +128,7 @@ function createOverlayWithText (opts, elementToAppendChild, classes) {
     .then(sentry => {
       if (typeof sentry.serviceNameToSquad === 'function') {
         const squadDiv = document.createElement('div');
-        squadDiv.appendChild(document.createTextNode(`(${sentry.serviceNameToSquad(opts.childAppName)} squad)`));
+        squadDiv.appendChild(document.createTextNode(`(${sentry.serviceNameToSquad(props.childAppName)} squad)`));
         squadDiv.style.marginLeft = '2px';
         childDiv.appendChild(squadDiv);
       }

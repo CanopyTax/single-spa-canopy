@@ -1,14 +1,14 @@
-import {initializeHotReloading} from './hot-reload.js';
 import deepMerge from 'deepmerge';
 import {setOrRemoveAllOverlays} from './overlays.helpers.js'
 
 const defaultOpts = {
   domElementGetter: null,
-  childAppName: null,
   featureToggles: [],
   position: 'relative',
   hotload: {
     warnCss: true,
+    module: null,
+    __webpack_require__: null,
     dev: {
       enabled: false, // You must opt in to hotload
       waitForUnmount: false,
@@ -32,10 +32,6 @@ export default function singleSpaCanopy(userOpts) {
 
   const opts = deepMerge(defaultOpts, userOpts);
 
-  if (typeof opts.childAppName !== 'string') {
-    throw new Error(`single-spa-canopy requires opts.childAppName string`);
-  }
-
   if (userOpts.featureToggles && !Array.isArray(userOpts.featureToggles)) {
     throw new Error(`single-spa-canopy opts.featureToggles must be an array of strings`);
   }
@@ -48,16 +44,16 @@ export default function singleSpaCanopy(userOpts) {
   };
 }
 
-function getUrl(opts) {
+function getUrl(props) {
   return SystemJS.locate
     ? SystemJS.locate({
-        name: `${opts.childAppName}!sofe`,
+        name: `${props.childAppName}!sofe`,
         metadata: {},
         address: "",
       })
     : SystemJS.import("sofe").then(({ getServiceUrl, InvalidServiceName }) => {
           try {
-            return getServiceUrl(opts.childAppName);
+            return getServiceUrl(props.childAppName);
           } catch (e) {
             if (e instanceof InvalidServiceName) {
               console.warn(
@@ -72,30 +68,64 @@ function getUrl(opts) {
       });
 }
 
-function bootstrap(opts) {
+function isOverridden(props) {
+  return SystemJS
+    .import('sofe')
+    .then(sofe => sofe.isOverride(props.childAppName))
+}
+
+function bootstrap(opts, props) {
   return Promise
     .resolve()
     .then(() => {
       const blockingPromises = [];
-      const moduleName = `${opts.childAppName}!sofe`;
+      const moduleName = `${props.childAppName}!sofe`;
 
-      blockingPromises.push(getUrl(opts).then(url => {
-          const invalidName = url === 'INVALID';
+      blockingPromises.push(Promise.all([getUrl(props), isOverridden(props)]).then(values => {
+        const [url, isOverridden] = values;
+        const invalidName = url === 'INVALID';
 
-          const overriddenToLocal = url.indexOf('https://localhost') === 0 || url.indexOf('https://ielocal') === 0;
-          const shouldHotload = !invalidName && overriddenToLocal && opts.hotload.dev.enabled;
+        const shouldHotload = !invalidName && isOverridden && opts.hotload.dev.enabled;
 
-          if (shouldHotload) {
-            initializeHotReloading(opts, url, opts.hotload.dev.waitForUnmount);
+        if (shouldHotload) {
+          if (!opts.hotload.module) {
+            console.warn(`single-spa-canopy: for application '${props.childAppName}', hot reloading is enabled but the opts.module is undefined. Either turn off hot reloading in singleSpaCanopy config, or pass in the module object to single-spa-canopy`);
           }
 
-          if (window.Raven) {
-            window.Raven.setTagsContext({
-              [opts.childAppName]: url,
+          if (opts.hotload.module && !opts.hotload.module.hot) {
+            console.warn(`single-spa-canopy: for application '${props.childAppName}', hot reloading is enabled but webpack hot reloading is not (module.hot is undefined). Either turn off hot reloading in the singleSpaCanopy config, or enable webpack hot reloading`);
+          }
+
+          if (opts.hotload.__webpack_require__) {
+            var webpackPublicPath = url.slice(0, url.lastIndexOf('/') + 1);
+            opts.hotload.__webpack_require__.p = webpackPublicPath;
+          } else {
+            console.warn('single-spa-canopy: for application \'' + props.childAppName + '\', hot reloading is enabled but the application is not bundled with webpack, which is currently the only supported bundler for hot reloading. Please provide __webpack_require__ opt to singleSpaCanopprovide __webpack_require__ opt to singleSpaCanopy.');
+          }
+
+          if (opts.hotload.module && opts.hotload.module.hot) {
+            opts.hotload.module.hot.accept();
+            opts.hotload.module.hot.dispose(() => {
+              SystemJS
+                .import('single-spa')
+                .then(singleSpa => {
+                  singleSpa.unloadChildApplication(props.childAppName, {waitForUnmount: opts.hotload.dev.waitForUnmount});
+                })
+                .catch(err => {
+                  setTimeout(() => {
+                    throw err;
+                  });
+                });
             });
           }
-        })
-      );
+        }
+
+        if (window.Raven) {
+          window.Raven.setTagsContext({
+            [props.childAppName]: url,
+          });
+        }
+      }))
 
       if (opts.featureToggles.length > 0) {
         blockingPromises.push(
@@ -111,7 +141,7 @@ function bootstrap(opts) {
     });
 }
 
-function mount(opts) {
+function mount(opts, props) {
   return Promise
     .resolve()
     .then(() => {
@@ -125,7 +155,7 @@ function mount(opts) {
         opts.overlay._toggleOverlays = toggleOverlays;
 
         function toggleOverlays() {
-          setOrRemoveAllOverlays(el, opts);
+          setOrRemoveAllOverlays(el, opts, props);
         }
       }
     });
@@ -141,32 +171,15 @@ function unmount(opts) {
 }
 
 function unload(opts, props) {
-  if (SystemJS.reload) {
-    return Promise
-      .resolve()
-      .then(() => {
-        const optsChildAppSelector = opts.hotload.styleTagSelector; // This can be a className `.name` or an `#id` or any selector
-        const propsChildAppSelector = `#${props.childAppName}-styles`;
-        let didRemoveCss = attemptDeleteDomNode(opts.hotload.styleTagSelector) || attemptDeleteDomNode(optsChildAppSelector) || attemptDeleteDomNode(propsChildAppSelector);
-
-        if (typeof __webpack_require__ !== 'undefined') {
-          const installedModules = __webpack_require__.c;
-          for (let moduleId in installedModules) {
-            const module = installedModules[moduleId]
-            if (module.hot) {
-              module.hot._disposeHandlers.forEach(handler => handler());
-            }
-          }
-          didRemoveCss = true;
-        }
-        if (!didRemoveCss && opts.hotload.warnCss) {
-          console.error(`Hot-reload warning: Cannot unload css for app '${props.childAppName}'. Please provide opts.hotload.styleTagSelector, or put an id attribute on the <style> with '${optsChildAppSelector}' or '${propsChildAppSelector}'. If using webpack, try doing webpack --hot`);
-        }
-      })
-      .then(() => SystemJS.reload(opts.childAppName));
-  } else {
-    return Promise.reject(`Cannot hotload app '${opts.childAppName}' because SystemJS.trace is false or SystemJS.reload is undefined. Try running localStorage.setItem('common-deps', 'dev') and refreshing the page.`);
-  }
+  return Promise
+    .resolve()
+    .then(() => {
+      const serviceName = props.childAppName + '!sofe';
+      const wasDeleted = SystemJS.delete(SystemJS.normalizeSync(serviceName));
+      if (!wasDeleted) {
+        throw new Error(`Could not unload application '${serviceName}'`);
+      }
+    })
 }
 
 function attemptDeleteDomNode(selector) {
