@@ -6,7 +6,6 @@ const defaultOpts = {
   featureToggles: [],
   position: 'relative',
   hotload: {
-    warnCss: true,
     module: null, // Webpack's "module" object for the root javascript module of the child application. (module.exports, module.hot, etc)
     __webpack_require__: null, // Webpack's require global variable, which let's us alter the public path dynamically at runtime
     dev: {

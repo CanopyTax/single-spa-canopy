@@ -13,7 +13,6 @@ const canopyLifecycles = singleSpaCanopy({
   React,
   featureToggles: ['toggle1', 'toggle2'],
   hotload: {
-    warnCss: true, // Show a warning if no css is being hotloaded.
     module: module, // The module object in webpack bundles for your root javascript file
     __webpack_require__: __webpack_require__, // The __webpack_require__ variable defined globally in webpack bundles.
     dev: {
