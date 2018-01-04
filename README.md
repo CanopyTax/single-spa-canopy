@@ -10,11 +10,11 @@ import React from 'react'; // if you're using react.
 const canopyLifecycles = singleSpaCanopy({
   mainContentTransition: true,
   domElementGetter: () => document.getElementById('main-content'),
-  childAppName: 'workflow-ui!sofe',
   React,
   featureToggles: ['toggle1', 'toggle2'],
   hotload: {
-    warnCss: true, // Show a warning if no css is being hotloaded.
+    module: module, // The module object in webpack bundles for your root javascript file
+    __webpack_require__: __webpack_require__, // The __webpack_require__ variable defined globally in webpack bundles.
     dev: {
       enabled: true,
       waitForUnmount: false,
@@ -50,7 +50,6 @@ export const unload = [
 
 ## Options
 
-- `childAppName`: (required) A string, that includes the `!sofe` at the end. This is the name by which the child app can be SystemJS.imported.
 - `mainContentTransition`: (optional) A boolean value that defaults to true. If set to true, the three dots animation will show up when transitioning between apps
 - `domElementGetter`: (optional) A function that returns the dom element in which the child app will be mounted. This is required if `mainContentTransition` is true.
 - `React`: (optional) The react object, which will be used to determine if the child application is using the same version of React that is used by spalpatine.
