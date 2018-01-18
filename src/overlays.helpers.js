@@ -1,3 +1,4 @@
+import { getAppName } from './single-spa-canopy.js'
 const overlayDivClassName = `cp-single-spa-canopy__overlay--div`;
 
 // We will only add the event listener if it isn't already defined and certain localStorage variables are set to true
@@ -106,7 +107,7 @@ function createOverlayWithText (opts, props, elementToAppendChild, classes) {
   } else if (opts.overlay.background) {
     backgroundColor = opts.overlay.background
   } else {
-    backgroundColor = getColorFromString(props.childAppName)
+    backgroundColor = getColorFromString(getAppName(props))
   }
   div.style.background = backgroundColor
 
@@ -115,12 +116,12 @@ function createOverlayWithText (opts, props, elementToAppendChild, classes) {
   childDiv.style.flexDirection = elementToAppendChild.clientHeight > 80 ? 'column' : 'row';
   childDiv.style.alignItems = 'center'
   childDiv.style.justifyContent = 'center'
-  childDiv.style.color = opts.overlay.color || opts.overlay.textColor || getColorFromString(props.childAppName, 1)
+  childDiv.style.color = opts.overlay.color || opts.overlay.textColor || getColorFromString(getAppName(props), 1)
   childDiv.style.fontWeight = 'bold'
   childDiv.style.height = '100%'
   childDiv.style.fontSize = '32px'
   const appNameDiv = document.createElement('div');
-  appNameDiv.appendChild(document.createTextNode(props.childAppName));
+  appNameDiv.appendChild(document.createTextNode(getAppName(props)));
   childDiv.appendChild(appNameDiv);
 
   SystemJS
@@ -128,7 +129,7 @@ function createOverlayWithText (opts, props, elementToAppendChild, classes) {
     .then(sentry => {
       if (typeof sentry.serviceNameToSquad === 'function') {
         const squadDiv = document.createElement('div');
-        squadDiv.appendChild(document.createTextNode(`(${sentry.serviceNameToSquad(props.childAppName)} squad)`));
+        squadDiv.appendChild(document.createTextNode(`(${sentry.serviceNameToSquad(getAppName(props))} squad)`));
         squadDiv.style.marginLeft = '2px';
         childDiv.appendChild(squadDiv);
       }

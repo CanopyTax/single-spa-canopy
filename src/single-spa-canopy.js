@@ -43,16 +43,20 @@ export default function singleSpaCanopy(userOpts) {
   };
 }
 
+export function getAppName (props) {
+  return props.name || props.appName || props.childAppName
+}
+
 function getUrl(props) {
   return SystemJS.locate
     ? SystemJS.locate({
-        name: `${props.childAppName}!sofe`,
+        name: `${getAppName(props)}!sofe`,
         metadata: {},
         address: "",
       })
     : SystemJS.import("sofe").then(({ getServiceUrl, InvalidServiceName }) => {
           try {
-            return getServiceUrl(props.childAppName);
+            return getServiceUrl(getAppName(props));
           } catch (e) {
             if (e instanceof InvalidServiceName) {
               console.warn(
@@ -70,7 +74,7 @@ function getUrl(props) {
 function isOverridden(props) {
   return SystemJS
     .import('sofe')
-    .then(sofe => sofe.isOverride(props.childAppName))
+    .then(sofe => sofe.isOverride(getAppName(props)))
 }
 
 function bootstrap(opts, props) {
@@ -78,7 +82,7 @@ function bootstrap(opts, props) {
     .resolve()
     .then(() => {
       const blockingPromises = [];
-      const moduleName = `${props.childAppName}!sofe`;
+      const moduleName = `${getAppName(props)}!sofe`;
 
       blockingPromises.push(Promise.all([getUrl(props), isOverridden(props)]).then(values => {
         const [url, isOverridden] = values;
@@ -88,18 +92,18 @@ function bootstrap(opts, props) {
 
         if (shouldHotload) {
           if (!opts.hotload.module) {
-            console.warn(`single-spa-canopy: for application '${props.childAppName}', hot reloading is enabled but the opts.module is undefined. Either turn off hot reloading in singleSpaCanopy config, or pass in the module object to single-spa-canopy`);
+            console.warn(`single-spa-canopy: for application '${getAppName(props)}', hot reloading is enabled but the opts.module is undefined. Either turn off hot reloading in singleSpaCanopy config, or pass in the module object to single-spa-canopy`);
           }
 
           if (opts.hotload.module && !opts.hotload.module.hot) {
-            console.warn(`single-spa-canopy: for application '${props.childAppName}', hot reloading is enabled but webpack hot reloading is not (module.hot is undefined). Either turn off hot reloading in the singleSpaCanopy config, or enable webpack hot reloading`);
+            console.warn(`single-spa-canopy: for application '${getAppName(props)}', hot reloading is enabled but webpack hot reloading is not (module.hot is undefined). Either turn off hot reloading in the singleSpaCanopy config, or enable webpack hot reloading`);
           }
 
           if (opts.hotload.__webpack_require__) {
             var webpackPublicPath = url.slice(0, url.lastIndexOf('/') + 1);
             opts.hotload.__webpack_require__.p = webpackPublicPath;
           } else {
-            console.warn('single-spa-canopy: for application \'' + props.childAppName + '\', hot reloading is enabled but the application is not bundled with webpack, which is currently the only supported bundler for hot reloading. Please provide __webpack_require__ opt to singleSpaCanopprovide __webpack_require__ opt to singleSpaCanopy.');
+            console.warn('single-spa-canopy: for application \'' + getAppName(props) + '\', hot reloading is enabled but the application is not bundled with webpack, which is currently the only supported bundler for hot reloading. Please provide __webpack_require__ opt to singleSpaCanopprovide __webpack_require__ opt to singleSpaCanopy.');
           }
 
           if (opts.hotload.module && opts.hotload.module.hot) {
@@ -108,7 +112,7 @@ function bootstrap(opts, props) {
               SystemJS
                 .import('single-spa')
                 .then(singleSpa => {
-                  singleSpa.unloadChildApplication(props.childAppName, {waitForUnmount: opts.hotload.dev.waitForUnmount});
+                  singleSpa.unloadChildApplication(getAppName(props), {waitForUnmount: opts.hotload.dev.waitForUnmount});
                 })
                 .catch(err => {
                   setTimeout(() => {
@@ -121,7 +125,7 @@ function bootstrap(opts, props) {
 
         if (window.Raven) {
           window.Raven.setTagsContext({
-            [props.childAppName]: url,
+            [getAppName(props)]: url,
           });
         }
       }))
@@ -173,7 +177,7 @@ function unload(opts, props) {
   return Promise
     .resolve()
     .then(() => {
-      const serviceName = props.childAppName + '!sofe';
+      const serviceName = getAppName(props) + '!sofe';
       const wasDeleted = SystemJS.delete(SystemJS.normalizeSync(serviceName));
       if (!wasDeleted) {
         throw new Error(`Could not unload application '${serviceName}'`);
