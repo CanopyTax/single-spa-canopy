@@ -5,6 +5,7 @@ const defaultOpts = {
   domElementGetter: null,
   featureToggles: [],
   position: 'relative',
+  setPublicPath: null, // a function that should do `path => __webpack_public_path__ = path`. Necessary for hot reloading
   hotload: {
     module: null, // Webpack's "module" object for the root javascript module of the child application. (module.exports, module.hot, etc)
     __webpack_require__: null, // Webpack's require global variable, which let's us alter the public path dynamically at runtime
@@ -99,10 +100,13 @@ function bootstrap(opts, props) {
             console.warn(`single-spa-canopy: for application '${getAppName(props)}', hot reloading is enabled but webpack hot reloading is not (module.hot is undefined). Either turn off hot reloading in the singleSpaCanopy config, or enable webpack hot reloading`);
           }
 
-          if (opts.hotload.__webpack_require__) {
-            var webpackPublicPath = url.slice(0, url.lastIndexOf('/') + 1);
+          var webpackPublicPath = url.slice(0, url.lastIndexOf('/') + 1);
+
+          if (opts.setPublicPath) {
+            opts.setPublicPath(webpackPublicPath)
+          } else if (opts.hotload.__webpack_require__) {
             opts.hotload.__webpack_require__.p = webpackPublicPath;
-          } else {
+          }  else {
             console.warn('single-spa-canopy: for application \'' + getAppName(props) + '\', hot reloading is enabled but the application is not bundled with webpack, which is currently the only supported bundler for hot reloading. Please provide __webpack_require__ opt to singleSpaCanopprovide __webpack_require__ opt to singleSpaCanopy.');
           }
 
