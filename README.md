@@ -12,6 +12,10 @@ const canopyLifecycles = singleSpaCanopy({
   domElementGetter: () => document.getElementById('main-content'),
   React,
   featureToggles: ['toggle1', 'toggle2'],
+  setPublicPath(path) {
+    // Useful for hot reloading and other things. Works with sofe overridden services.
+    __webpack_public_path__ = path
+  },
   hotload: {
     module: module, // The module object in webpack bundles for your root javascript file
     __webpack_require__: __webpack_require__, // The __webpack_require__ variable defined globally in webpack bundles.
@@ -54,6 +58,7 @@ export const unload = [
 - `domElementGetter`: (optional) A function that returns the dom element in which the child app will be mounted. This is required if `mainContentTransition` is true.
 - `React`: (optional) The react object, which will be used to determine if the child application is using the same version of React that is used by spalpatine.
 - `featureToggles`: (optional) An array of strings, which are the names of feature toggles to fetch before this app is mounted.
+- `setPublicPath`: (optional) A function to set the webpack public path, which is necessary for loading image assets or for hot reloading. Works with sofe overrides.
 - `hotload`: (optional) An object that configures whether you would like to hot reload this single-spa application.
 - `overlay`: (optional) An Object that configures overlays. This feature is still somewhat experimental and makes a lot of guesses on overlay settings, most of the time you won't need this setting. There are a lot of optional overrides that you can use. Some are shown above.
 - `position`: (optional) A string that is applied to the CSS style (position) on the child app. Defaults to relative to enable the overlays to work.
