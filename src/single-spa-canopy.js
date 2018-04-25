@@ -89,6 +89,14 @@ function bootstrap(opts, props) {
         const [url, isOverridden] = values;
         const invalidName = url === 'INVALID';
 
+        const webpackPublicPath = url.slice(0, url.lastIndexOf('/') + 1);
+        let publicPathSet = false;
+
+        if (opts.setPublicPath) {
+          opts.setPublicPath(webpackPublicPath)
+          publicPathSet = true
+        }
+
         const shouldHotload = !invalidName && isOverridden && opts.hotload.dev.enabled;
 
         if (shouldHotload) {
@@ -100,13 +108,12 @@ function bootstrap(opts, props) {
             console.warn(`single-spa-canopy: for application '${getAppName(props)}', hot reloading is enabled but webpack hot reloading is not (module.hot is undefined). Either turn off hot reloading in the singleSpaCanopy config, or enable webpack hot reloading`);
           }
 
-          var webpackPublicPath = url.slice(0, url.lastIndexOf('/') + 1);
-
-          if (opts.setPublicPath) {
-            opts.setPublicPath(webpackPublicPath)
-          } else if (opts.hotload.__webpack_require__) {
+          if (opts.hotload.__webpack_require__) {
             opts.hotload.__webpack_require__.p = webpackPublicPath;
-          }  else {
+            publicPathSet = true
+          }
+
+          if (!publicPathSet) {
             console.warn('single-spa-canopy: for application \'' + getAppName(props) + '\', hot reloading is enabled but the application is not bundled with webpack, which is currently the only supported bundler for hot reloading. Please provide __webpack_require__ opt to singleSpaCanopprovide __webpack_require__ opt to singleSpaCanopy.');
           }
 
