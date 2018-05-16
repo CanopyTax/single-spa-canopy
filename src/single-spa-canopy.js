@@ -225,7 +225,6 @@ export function forceSetPublicPath(config) {
 
       blockingPromises.push(Promise.all([getUrl(config), isOverridden(config)]).then(values => {
         const [url, isOverridden] = values;
-        const invalidName = url === 'INVALID';
 
         const webpackPublicPath = url.slice(0, url.lastIndexOf('/') + 1);
 
