@@ -214,3 +214,39 @@ function getDomEl(opts) {
 
   return el;
 }
+
+export function forceSetPublicPath(config) {
+  const error = validateConfig(config)
+  if (error === undefined) {
+    return Promise
+      .resolve()
+      .then(() => {
+        const blockingPromises = [];
+        const moduleName = `${getAppName(config)}!sofe`;
+
+        blockingPromises.push(Promise.all([getUrl(config), isOverridden(config)]).then(values => {
+          const [url, isOverridden] = values;
+          const invalidName = url === 'INVALID';
+
+          const webpackPublicPath = url.slice(0, url.lastIndexOf('/') + 1);
+
+          if (config.setPublicPath) {
+            config.setPublicPath(webpackPublicPath)
+          }
+        }))
+
+        return Promise.all(blockingPromises).then(results => null);
+      })
+  } else {
+    return Promise.resolve()
+  }
+}
+
+function validateConfig(config) {
+  const name = getAppName(config)
+  if (name === undefined) {
+    throw new Error('cannot get appName - invalid config')
+  } else if (!config.setPublicPath) {
+    throw new Error('cannot set publicPath without a `setPublicPath` method on the configuration')
+  }
+}
