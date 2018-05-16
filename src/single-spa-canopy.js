@@ -216,30 +216,26 @@ function getDomEl(opts) {
 }
 
 export function forceSetPublicPath(config) {
-  const error = validateConfig(config)
-  if (error === undefined) {
-    return Promise
-      .resolve()
-      .then(() => {
-        const blockingPromises = [];
-        const moduleName = `${getAppName(config)}!sofe`;
+  validateConfig(config)
+  return Promise
+    .resolve()
+    .then(() => {
+      const blockingPromises = [];
+      const moduleName = `${getAppName(config)}!sofe`;
 
-        blockingPromises.push(Promise.all([getUrl(config), isOverridden(config)]).then(values => {
-          const [url, isOverridden] = values;
-          const invalidName = url === 'INVALID';
+      blockingPromises.push(Promise.all([getUrl(config), isOverridden(config)]).then(values => {
+        const [url, isOverridden] = values;
+        const invalidName = url === 'INVALID';
 
-          const webpackPublicPath = url.slice(0, url.lastIndexOf('/') + 1);
+        const webpackPublicPath = url.slice(0, url.lastIndexOf('/') + 1);
 
-          if (config.setPublicPath) {
-            config.setPublicPath(webpackPublicPath)
-          }
-        }))
+        if (config.setPublicPath) {
+          config.setPublicPath(webpackPublicPath)
+        }
+      }))
 
-        return Promise.all(blockingPromises).then(results => null);
-      })
-  } else {
-    return Promise.resolve()
-  }
+      return Promise.all(blockingPromises).then(results => null);
+    })
 }
 
 function validateConfig(config) {
