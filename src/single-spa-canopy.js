@@ -21,9 +21,12 @@ const defaultOpts = {
   overlay: {
     selectors: [],
   },
+  styleElementSelector: null // a string used to select style elements for removal when an app is unmounted
 };
 
 const domParser = new DOMParser();
+
+let styleElements = [];
 
 export default function singleSpaCanopy(userOpts) {
   if (typeof userOpts !== 'object') {
@@ -172,6 +175,14 @@ function mount(opts, props) {
           setOrRemoveAllOverlays(el, opts, props);
         }
       }
+      if (styleElements.length > 0) {
+        const headElement = document.getElementsByTagName('head')[0];
+        styleElements.forEach(el => {
+          headElement.appendChild(el);
+        });
+      } else if (opts.styleElementSelector) {
+        styleElements = document.querySelectorAll(opts.styleElementSelector);
+      }
     });
 }
 
@@ -179,9 +190,14 @@ function unmount(opts) {
   return Promise
     .resolve()
     .then(() => {
-      window.removeEventListener('cp:show-overlay-keypress', opts.overlay._toggleOverlays)
-      window.removeEventListener('single-spa:routing-event', opts.overlay._toggleOverlays)
-    })
+      window.removeEventListener('cp:show-overlay-keypress', opts.overlay._toggleOverlays);
+      window.removeEventListener('single-spa:routing-event', opts.overlay._toggleOverlays);
+      if (styleElements.length > 0) {
+        styleElements.forEach(el => {
+          el.parentNode.removeChild(el);
+        });
+      }
+    });
 }
 
 function unload(opts, props) {
@@ -193,7 +209,7 @@ function unload(opts, props) {
       if (!wasDeleted) {
         throw new Error(`Could not unload application '${serviceName}'`);
       }
-    })
+    });
 }
 
 function attemptDeleteDomNode(selector) {
