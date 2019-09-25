@@ -4,7 +4,7 @@
   "description": "Some helpers for single-spa child apps at canopy",
   "main": "lib/single-spa-canopy.js",
   "scripts": {
-    "build": "rimraf lib && babel src --out-dir lib --source-maps",
+    "build": "rollup --config rollup.config.js",
     "prepublish": "yarn build"
   },
   "repository": {
@@ -17,10 +17,12 @@
   },
   "homepage": "https://github.com/CanopyTax/single-spa-canopy#readme",
   "devDependencies": {
-    "babel-cli": "^6.26.0",
-    "babel-preset-es2015": "^6.24.1",
-    "babel-preset-stage-0": "^6.24.1",
-    "rimraf": "^2.6.2"
+    "@babel/cli": "^7.0.0",
+    "@babel/core": "^7.0.0",
+    "@babel/preset-env": "^7.0.0",
+    "rollup": "^1.21.4",
+    "rollup-plugin-babel": "^4.3.3",
+    "rollup-plugin-node-resolve": "^5.2.0"
   },
   "dependencies": {
     "deepmerge": "^1.3.1"
