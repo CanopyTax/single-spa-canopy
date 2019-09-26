@@ -1,8 +1,8 @@
 {
   "name": "single-spa-canopy",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Some helpers for single-spa child apps at canopy",
-  "main": "lib/single-spa-canopy.js",
+  "main": "lib/single-spa-canopy.min.js",
   "scripts": {
     "build": "rollup --config rollup.config.js",
     "prepublish": "yarn build"
@@ -22,7 +22,8 @@
     "@babel/preset-env": "^7.0.0",
     "rollup": "^1.21.4",
     "rollup-plugin-babel": "^4.3.3",
-    "rollup-plugin-node-resolve": "^5.2.0"
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "rollup-plugin-terser": "^5.1.2"
   },
   "dependencies": {
     "deepmerge": "^1.3.1"
