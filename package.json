@@ -2,7 +2,7 @@
   "name": "single-spa-canopy",
   "version": "2.1.1",
   "description": "Some helpers for single-spa child apps at canopy",
-  "main": "lib/single-spa-canopy.min.js",
+  "main": "lib/umd/single-spa-canopy.min.js",
   "scripts": {
     "build": "rollup --config rollup.config.js",
     "prepublish": "yarn build"
