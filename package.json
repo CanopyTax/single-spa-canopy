@@ -1,6 +1,6 @@
 {
   "name": "single-spa-canopy",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "Some helpers for single-spa child apps at canopy",
   "main": "lib/umd/single-spa-canopy.min.js",
   "scripts": {
