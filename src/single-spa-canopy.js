@@ -1,5 +1,5 @@
 import deepMerge from 'deepmerge';
-import {setOrRemoveAllOverlays} from './overlays.helpers.js'
+import {setOrRemoveAllOverlays, getAppName} from './overlays.helpers.js'
 
 const defaultOpts = {
   domElementGetter: null,
@@ -42,10 +42,6 @@ export default function singleSpaCanopy(userOpts) {
     unmount: unmount.bind(null, opts),
     unload: unload.bind(null, opts),
   };
-}
-
-export function getAppName (props) {
-  return props.name || props.appName || props.childAppName
 }
 
 function getUrl(props) {
@@ -215,7 +211,7 @@ function getDomEl(opts) {
   return el;
 }
 
-export function forceSetPublicPath(config) {
+function forceSetPublicPath(config) {
   validateConfig(config)
   return Promise
     .resolve()

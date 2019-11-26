@@ -1,4 +1,7 @@
-import { getAppName } from './single-spa-canopy.js'
+export function getAppName (props) {
+  return props.name || props.appName || props.childAppName
+}
+
 const overlayDivClassName = `cp-single-spa-canopy__overlay--div`;
 
 // We will only add the event listener if it isn't already defined and certain localStorage variables are set to true
@@ -12,7 +15,7 @@ if (!window._overlayListenerDefined && canDevOverlayBeTurnedOn()) {
   window._overlayListenerDefined = true
 }
 
-// We don't want our customers to ever see the dev overlay. This will prevent the eventListener from even being created 
+// We don't want our customers to ever see the dev overlay. This will prevent the eventListener from even being created
 //  without the correct localStorage varables being set.
 function canDevOverlayBeTurnedOn () {
   if (typeof localStorage === 'undefined') {
