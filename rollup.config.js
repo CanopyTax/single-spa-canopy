@@ -7,8 +7,7 @@ export default [
     input: 'src/single-spa-canopy.js',
     output: {
       file: 'lib/umd/single-spa-canopy.min.js',
-      name: 'single-spa-canopy',
-      format: 'umd',
+      format: 'amd',
       sourcemap: true,
     },
     plugins: [
