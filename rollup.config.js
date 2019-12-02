@@ -6,7 +6,7 @@ export default [
   {
     input: 'src/single-spa-canopy.js',
     output: {
-      file: 'lib/umd/single-spa-canopy.min.js',
+      file: 'lib/amd/single-spa-canopy.min.js',
       format: 'amd',
       sourcemap: true,
     },
