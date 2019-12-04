@@ -23,8 +23,7 @@ const defaultOpts = {
   },
 };
 
-const domParser = new DOMParser();
-
+export const __esModule = true;
 export default function singleSpaCanopy(userOpts) {
   if (typeof userOpts !== 'object') {
     throw new Error(`single-spa-canopy requires an opts object`);
