@@ -1,6 +1,6 @@
 {
   "name": "single-spa-canopy",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "Some helpers for single-spa child apps at canopy",
   "main": "lib/amd/single-spa-canopy.min.js",
   "scripts": {
