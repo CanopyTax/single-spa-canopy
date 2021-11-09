@@ -1,9 +1,10 @@
-import deepMerge from 'deepmerge';
+const deepMerge = require('deepmerge');
 import {setOrRemoveAllOverlays, getAppName} from './overlays.helpers.js'
+
+console.log('this is the bootstrap yo')
 
 const defaultOpts = {
   domElementGetter: null,
-  featureToggles: [],
   position: 'relative',
   setPublicPath: null, // a function that should do `path => __webpack_public_path__ = path`. Necessary for hot reloading
   hotload: {
@@ -30,10 +31,6 @@ export default function singleSpaCanopy(userOpts) {
   }
 
   const opts = deepMerge(defaultOpts, userOpts);
-
-  if (userOpts.featureToggles && !Array.isArray(userOpts.featureToggles)) {
-    throw new Error(`single-spa-canopy opts.featureToggles must be an array of strings`);
-  }
 
   return {
     bootstrap: bootstrap.bind(null, opts),
@@ -135,16 +132,6 @@ function bootstrap(opts, props) {
           });
         }
       }))
-
-      if (opts.featureToggles.length > 0) {
-        blockingPromises.push(
-          SystemJS
-          .import('feature-toggles!sofe')
-          .then(featureToggles => {
-            return featureToggles.fetchFeatureToggles(...opts.featureToggles)
-          })
-        );
-      }
 
       return Promise.all(blockingPromises);
     });
