@@ -118,7 +118,7 @@ function bootstrap(opts, props) {
               SystemJS
                 .import('single-spa')
                 .then(singleSpa => {
-                  singleSpa.unloadChildApplication(getAppName(props), {waitForUnmount: opts.hotload.dev.waitForUnmount});
+                  singleSpa.unloadApplication(getAppName(props), {waitForUnmount: opts.hotload.dev.waitForUnmount});
                 })
                 .catch(err => {
                   setTimeout(() => {
