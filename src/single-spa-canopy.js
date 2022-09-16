@@ -1,7 +1,5 @@
-const deepMerge = require('deepmerge');
-import {setOrRemoveAllOverlays, getAppName} from './overlays.helpers.js'
-
-console.log('this is the bootstrap yo')
+import deepMerge from 'deepmerge';
+import { setOrRemoveAllOverlays, getAppName } from './overlays.helpers.js'
 
 const defaultOpts = {
   domElementGetter: null,
@@ -115,7 +113,7 @@ function bootstrap(opts, props) {
               SystemJS
                 .import('single-spa')
                 .then(singleSpa => {
-                  singleSpa.unloadChildApplication(getAppName(props), {waitForUnmount: opts.hotload.dev.waitForUnmount});
+                  singleSpa.unloadApplication(getAppName(props), {waitForUnmount: opts.hotload.dev.waitForUnmount});
                 })
                 .catch(err => {
                   setTimeout(() => {
