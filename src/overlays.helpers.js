@@ -128,7 +128,7 @@ function createOverlayWithText (opts, props, elementToAppendChild, classes) {
   childDiv.appendChild(appNameDiv);
 
   SystemJS
-    .import('sentry-error-logging!sofe')
+    .import('error-logging!sofe')
     .then(sentry => {
       if (typeof sentry.serviceNameToSquad === 'function') {
         const squadDiv = document.createElement('div');
