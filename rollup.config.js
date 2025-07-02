@@ -17,6 +17,12 @@ export default {
       format: 'system',
       sourcemap: true,
       exports: 'named',
+    },
+    {
+      file: 'lib/esm/single-spa-canopy.js',
+      format: 'es',
+      sourcemap: true,
+      exports: 'named',
     }
   ],
   plugins: [
