@@ -19,7 +19,7 @@ export default {
       exports: 'named',
     },
     {
-      file: 'lib/esm/single-spa-canopy.js',
+      file: 'lib/esm/single-spa-canopy.min.js',
       format: 'es',
       sourcemap: true,
       exports: 'named',
