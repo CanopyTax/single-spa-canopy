@@ -3,3 +3,12 @@ node_modules
 .DS_Store
 npm-debug.log
 .idea
+
+# yarn
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions

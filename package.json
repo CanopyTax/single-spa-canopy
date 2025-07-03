@@ -1,6 +1,6 @@
 {
   "name": "single-spa-canopy",
-  "version": "3.1.0",
+  "version": "3.2.0",
   "description": "Some helpers for single-spa child apps at canopy",
   "main": "lib/amd/single-spa-canopy.min.js",
   "scripts": {
@@ -28,5 +28,6 @@
   },
   "dependencies": {
     "deepmerge": "^4.2.2"
-  }
+  },
+  "packageManager": "yarn@4.9.2"
 }
