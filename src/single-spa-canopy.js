@@ -119,5 +119,3 @@ function getDomEl(opts) {
 
   return el;
 }
-
-// forceSetPublicPath and validateConfig functions removed - no longer needed with ESM
