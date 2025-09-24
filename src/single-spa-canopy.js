@@ -54,8 +54,7 @@ function getUrl(props) {
 }
 
 function isOverridden(props) {
-  // Since we're moving away from SOFE, this can return false
-  // or implement your own override logic
+  // sofe returns false anyways
   return Promise.resolve(false);
 }
 
@@ -167,12 +166,9 @@ function unmount(opts) {
   });
 }
 
-function unload(opts, props) {
-  return Promise.resolve().then(() => {
-    // ESM modules are cached by the browser, no manual cleanup needed
-    // This function can be simplified or removed entirely
-    console.log(`Unloading application: ${getAppName(props)}`);
-  });
+function unload() {
+  // ESM modules are cached by the browser, no manual cleanup needed
+  return Promise.resolve();
 }
 
 function attemptDeleteDomNode(selector) {
