@@ -4,25 +4,11 @@ import { setOrRemoveAllOverlays, getAppName } from "./overlays.helpers.js";
 const defaultOpts = {
   domElementGetter: null,
   position: "relative",
-  setPublicPath: null, // a function that should do `path => __webpack_public_path__ = path`. Necessary for hot reloading
-  hotload: {
-    module: null, // Webpack's "module" object for the root javascript module of the child application. (module.exports, module.hot, etc)
-    __webpack_require__: null, // Webpack's require global variable, which let's us alter the public path dynamically at runtime
-    dev: {
-      enabled: false, // You must opt in to hotload
-      waitForUnmount: false,
-    },
-    deployed: {
-      enabled: false,
-      waitForUnmount: true,
-    },
-  },
   overlay: {
     selectors: [],
   },
 };
 
-export const __esModule = true;
 export default function singleSpaCanopy(userOpts) {
   if (typeof userOpts !== "object") {
     throw new Error(`single-spa-canopy requires an opts object`);
@@ -64,65 +50,7 @@ function bootstrap(opts, props) {
     const moduleName = `@canopytax/${getAppName(props)}`;
 
     blockingPromises.push(
-      Promise.all([getUrl(props), isOverridden(props)]).then((values) => {
-        const [url, isOverridden] = values;
-        const invalidName = url === "INVALID";
-
-        const webpackPublicPath = url.slice(0, url.lastIndexOf("/") + 1);
-        let publicPathSet = false;
-
-        if (opts.setPublicPath) {
-          opts.setPublicPath(webpackPublicPath);
-          publicPathSet = true;
-        }
-
-        const shouldHotload =
-          !invalidName && isOverridden && opts.hotload.dev.enabled;
-
-        if (shouldHotload) {
-          if (!opts.hotload.module) {
-            console.warn(
-              `single-spa-canopy: for application '${getAppName(props)}', hot reloading is enabled but the opts.module is undefined. Either turn off hot reloading in singleSpaCanopy config, or pass in the module object to single-spa-canopy`,
-            );
-          }
-
-          if (opts.hotload.module && !opts.hotload.module.hot) {
-            console.warn(
-              `single-spa-canopy: for application '${getAppName(props)}', hot reloading is enabled but webpack hot reloading is not (module.hot is undefined). Either turn off hot reloading in the singleSpaCanopy config, or enable webpack hot reloading`,
-            );
-          }
-
-          if (opts.hotload.__webpack_require__) {
-            opts.hotload.__webpack_require__.p = webpackPublicPath;
-            publicPathSet = true;
-          }
-
-          if (!publicPathSet) {
-            console.warn(
-              "single-spa-canopy: for application '" +
-                getAppName(props) +
-                "', hot reloading is enabled but the application is not bundled with webpack, which is currently the only supported bundler for hot reloading. Please provide __webpack_require__ opt to singleSpaCanopprovide __webpack_require__ opt to singleSpaCanopy.",
-            );
-          }
-
-          if (opts.hotload.module && opts.hotload.module.hot) {
-            opts.hotload.module.hot.accept();
-            opts.hotload.module.hot.dispose(() => {
-              import("single-spa")
-                .then((singleSpa) => {
-                  singleSpa.unloadApplication(getAppName(props), {
-                    waitForUnmount: opts.hotload.dev.waitForUnmount,
-                  });
-                })
-                .catch((err) => {
-                  setTimeout(() => {
-                    throw err;
-                  });
-                });
-            });
-          }
-        }
-
+      Promise.all([getUrl(props), isOverridden(props)]).then(([url]) => {
         if (window.Raven) {
           window.Raven.setTagsContext({
             [getAppName(props)]: url,
@@ -192,35 +120,4 @@ function getDomEl(opts) {
   return el;
 }
 
-function forceSetPublicPath(config) {
-  validateConfig(config);
-  return Promise.resolve().then(() => {
-    const blockingPromises = [];
-    const moduleName = `@canopytax/${getAppName(config)}`;
-
-    blockingPromises.push(
-      Promise.all([getUrl(config), isOverridden(config)]).then((values) => {
-        const [url, isOverridden] = values;
-
-        const webpackPublicPath = url.slice(0, url.lastIndexOf("/") + 1);
-
-        if (config.setPublicPath) {
-          config.setPublicPath(webpackPublicPath);
-        }
-      }),
-    );
-
-    return Promise.all(blockingPromises).then((results) => null);
-  });
-}
-
-function validateConfig(config) {
-  const name = getAppName(config);
-  if (name === undefined) {
-    throw new Error("cannot get appName - invalid config");
-  } else if (!config.setPublicPath) {
-    throw new Error(
-      "cannot set publicPath without a `setPublicPath` method on the configuration",
-    );
-  }
-}
+// forceSetPublicPath and validateConfig functions removed - no longer needed with ESM
