@@ -1,3 +1,5 @@
+import { hasSystemJS } from './has-systemjs.js'
+
 export function getAppName (props) {
   return props.name || props.appName || props.childAppName
 }
@@ -127,8 +129,10 @@ function createOverlayWithText (opts, props, elementToAppendChild, classes) {
   appNameDiv.appendChild(document.createTextNode(getAppName(props)));
   childDiv.appendChild(appNameDiv);
 
-  SystemJS
-    .import('error-logging!sofe')
+  (hasSystemJS()
+    ? SystemJS.import('@canopytax/error-logging')
+    : import('@canopytax/error-logging')
+  )
     .then(sentry => {
       if (typeof sentry.serviceNameToSquad === 'function') {
         const squadDiv = document.createElement('div');
