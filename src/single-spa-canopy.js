@@ -1,5 +1,6 @@
 import deepMerge from 'deepmerge';
 import { setOrRemoveAllOverlays, getAppName } from './overlays.helpers.js'
+import { hasSystemJS } from './has-systemjs.js'
 
 const defaultOpts = {
   domElementGetter: null,
@@ -38,6 +39,12 @@ export default function singleSpaCanopy(userOpts) {
   };
 }
 
+// Everything this module does with SystemJS is sofe-era tooling: resolving a service URL
+// to set the webpack public path, checking for a sofe override to decide about hot
+// reloading, and evicting a module from the registry on unload. A page served through a
+// native import map has none of it, and cannot: the browser's registry cannot be queried
+// or evicted, and publicPath 'auto' already resolves chunks against the module URL.
+
 function getUrl(props) {
   return SystemJS.locate
     ? SystemJS.locate({
@@ -73,7 +80,10 @@ function bootstrap(opts, props) {
     .resolve()
     .then(() => {
       const blockingPromises = [];
-      const moduleName = `${getAppName(props)}!sofe`;
+
+      if (!hasSystemJS()) {
+        return Promise.all(blockingPromises);
+      }
 
       blockingPromises.push(Promise.all([getUrl(props), isOverridden(props)]).then(values => {
         const [url, isOverridden] = values;
@@ -139,7 +149,6 @@ function mount(opts, props) {
   return Promise
     .resolve()
     .then(() => {
-      let overlayArray = []
       if (opts.domElementGetter) {
         const el = getDomEl(opts);
         el.style.position = opts.position
@@ -168,22 +177,18 @@ function unload(opts, props) {
   return Promise
     .resolve()
     .then(() => {
+      // Unloading exists so a later mount refetches the module. Without a registry to
+      // evict from there is nothing to do, and throwing here would fail the unload.
+      if (!hasSystemJS()) {
+        return;
+      }
+
       const serviceName = getAppName(props) + '!sofe';
       const wasDeleted = SystemJS.delete(SystemJS.normalizeSync(serviceName));
       if (!wasDeleted) {
         throw new Error(`Could not unload application '${serviceName}'`);
       }
     })
-}
-
-function attemptDeleteDomNode(selector) {
-  const element = document.querySelector(selector);
-  if (!element) {
-    return false;
-  } else {
-    element.parentNode.removeChild(element);
-    return true;
-  }
 }
 
 function getDomEl(opts) {
@@ -193,35 +198,4 @@ function getDomEl(opts) {
   }
 
   return el;
-}
-
-function forceSetPublicPath(config) {
-  validateConfig(config)
-  return Promise
-    .resolve()
-    .then(() => {
-      const blockingPromises = [];
-      const moduleName = `${getAppName(config)}!sofe`;
-
-      blockingPromises.push(Promise.all([getUrl(config), isOverridden(config)]).then(values => {
-        const [url, isOverridden] = values;
-
-        const webpackPublicPath = url.slice(0, url.lastIndexOf('/') + 1);
-
-        if (config.setPublicPath) {
-          config.setPublicPath(webpackPublicPath)
-        }
-      }))
-
-      return Promise.all(blockingPromises).then(results => null);
-    })
-}
-
-function validateConfig(config) {
-  const name = getAppName(config)
-  if (name === undefined) {
-    throw new Error('cannot get appName - invalid config')
-  } else if (!config.setPublicPath) {
-    throw new Error('cannot set publicPath without a `setPublicPath` method on the configuration')
-  }
 }
