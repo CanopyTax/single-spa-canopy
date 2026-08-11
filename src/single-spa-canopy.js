@@ -80,7 +80,6 @@ function bootstrap(opts, props) {
     .resolve()
     .then(() => {
       const blockingPromises = [];
-      const moduleName = `${getAppName(props)}!sofe`;
 
       if (!hasSystemJS()) {
         return Promise.all(blockingPromises);
@@ -150,7 +149,6 @@ function mount(opts, props) {
   return Promise
     .resolve()
     .then(() => {
-      let overlayArray = []
       if (opts.domElementGetter) {
         const el = getDomEl(opts);
         el.style.position = opts.position
@@ -193,16 +191,6 @@ function unload(opts, props) {
     })
 }
 
-function attemptDeleteDomNode(selector) {
-  const element = document.querySelector(selector);
-  if (!element) {
-    return false;
-  } else {
-    element.parentNode.removeChild(element);
-    return true;
-  }
-}
-
 function getDomEl(opts) {
   const el = opts.domElementGetter();
   if (!el) {
@@ -210,35 +198,4 @@ function getDomEl(opts) {
   }
 
   return el;
-}
-
-function forceSetPublicPath(config) {
-  validateConfig(config)
-  return Promise
-    .resolve()
-    .then(() => {
-      const blockingPromises = [];
-      const moduleName = `${getAppName(config)}!sofe`;
-
-      blockingPromises.push(Promise.all([getUrl(config), isOverridden(config)]).then(values => {
-        const [url, isOverridden] = values;
-
-        const webpackPublicPath = url.slice(0, url.lastIndexOf('/') + 1);
-
-        if (config.setPublicPath) {
-          config.setPublicPath(webpackPublicPath)
-        }
-      }))
-
-      return Promise.all(blockingPromises).then(results => null);
-    })
-}
-
-function validateConfig(config) {
-  const name = getAppName(config)
-  if (name === undefined) {
-    throw new Error('cannot get appName - invalid config')
-  } else if (!config.setPublicPath) {
-    throw new Error('cannot set publicPath without a `setPublicPath` method on the configuration')
-  }
 }
